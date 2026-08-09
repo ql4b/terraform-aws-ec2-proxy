@@ -6,12 +6,16 @@
 
 ```hcl
 module "proxy" {
-  source = "github.com/ql4b/terraform-aws-ec2-proxy"
+  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v1.0.0"
 
   namespace = "cloudless"
   name      = "proxy"
 }
 ```
+
+> **Tip:** Always pin to a specific release tag (e.g. `?ref=v1.0.0`) to avoid
+> unexpected changes when the module is updated. Browse available versions on the
+> [Releases](https://github.com/ql4b/terraform-aws-ec2-proxy/releases) page.
 
 ## Inputs
 
