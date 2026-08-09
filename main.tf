@@ -82,6 +82,11 @@ resource "aws_spot_instance_request" "proxy" {
   iam_instance_profile   = aws_iam_instance_profile.proxy.name
   user_data              = local.user_data
 
+  metadata_options {
+    http_tokens   = "required"
+    http_endpoint = "enabled"
+  }
+
   wait_for_fulfillment = true
   spot_type            = "one-time"
 
@@ -104,6 +109,11 @@ resource "aws_instance" "proxy" {
   vpc_security_group_ids = [aws_security_group.proxy.id]
   iam_instance_profile   = aws_iam_instance_profile.proxy.name
   user_data              = local.user_data
+
+  metadata_options {
+    http_tokens   = "required"
+    http_endpoint = "enabled"
+  }
 
   tags = local.instance_tags
 }

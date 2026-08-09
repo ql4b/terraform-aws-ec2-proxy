@@ -16,6 +16,7 @@ The module is **feature-complete for its minimal use case** and published on Git
 - Squid configured to hide client identity (`via off`, `forwarded_for delete`)
 - Conventional commits enforced; semantic-release handles tagging/releases
 - GitHub Actions CI pipeline runs on push to `main`
+- IMDSv2 enforced (`http_tokens = "required"`) — mitigates SSRF credential theft
 
 ## What's Missing
 
