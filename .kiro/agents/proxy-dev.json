@@ -1,0 +1,21 @@
+{
+  "name": "proxy-dev",
+  "description": "Development agent for terraform-aws-ec2-proxy module",
+  "resources": [
+    "file://.kiro/steering/PROJECT.md",
+    "file://.kiro/steering/CURRENT_STATE.md",
+    "file://.kiro/steering/ENHANCEMENTS.md",
+    "file://.kiro/steering/COMMITS.md"
+  ],
+  "hooks": [
+    {
+      "name": "propose-next-task",
+      "trigger": "SessionStart",
+      "action": {
+        "type": "command",
+        "command": ".kiro/hooks/session-start.sh"
+      },
+      "timeout": 10
+    }
+  ]
+}
