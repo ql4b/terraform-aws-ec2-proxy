@@ -2,9 +2,9 @@
 
 *Last updated: 2026-08-09*
 
-## Status: MVP — Functional, Not Yet Released
+## Status: v1.0.0 — Released
 
-The module is **feature-complete for its minimal use case** but has not been committed or published. All 6 source files exist as untracked files on the `main` branch.
+The module is **feature-complete for its minimal use case** and published on GitHub. First push to `main` triggers semantic-release to create `v1.0.0`.
 
 ## What Works
 
@@ -14,14 +14,14 @@ The module is **feature-complete for its minimal use case** but has not been com
 - IAM role with SSM access enables `aws ssm start-session` for debugging
 - Outputs provide `proxy_url` ready for `HTTP_PROXY` env var usage
 - Squid configured to hide client identity (`via off`, `forwarded_for delete`)
+- Conventional commits enforced; semantic-release handles tagging/releases
+- GitHub Actions CI pipeline runs on push to `main`
 
 ## What's Missing
 
 | Category | Gap |
 |----------|-----|
-| **Version control** | No commits yet; no `.gitignore` |
 | **Testing** | No Terratest, no `terraform validate` CI step |
-| **CI/CD** | No GitHub Actions or equivalent pipeline |
 | **Examples** | No `examples/` directory with a ready-to-use tfvars |
 | **Documentation** | README is minimal — no architecture diagram, no prereqs section |
 | **Locking** | No `.terraform.lock.hcl` checked in |
@@ -47,3 +47,23 @@ The module is **feature-complete for its minimal use case** but has not been com
 | cloudposse/label/null | 0.25.0 | Naming/tagging framework |
 | Amazon Linux 2023 | latest (SSM) | AMI resolved at apply-time |
 | Squid | AL2023 repo default | Installed via user_data |
+
+## Repository Layout
+
+```
+.
+├── .github/workflows/release.yml  # Semantic-release CI
+├── .gitignore
+├── .kiro/steering/                 # Project steering docs
+│   ├── COMMITS.md
+│   ├── CURRENT_STATE.md
+│   ├── ENHANCEMENTS.md
+│   └── PROJECT.md
+├── .releaserc.yml                  # semantic-release config
+├── main.tf                         # All resources
+├── variables.tf                    # Module inputs
+├── outputs.tf                      # Module outputs
+├── versions.tf                     # Provider constraints
+├── context.tf                      # Cloud Posse null-label
+└── README.md
+```
