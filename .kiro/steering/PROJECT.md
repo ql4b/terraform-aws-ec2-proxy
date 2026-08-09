@@ -18,22 +18,22 @@ The design intentionally optimizes for **low cost and disposability** over durab
 
 ```
 ┌────────────────────────────────────────────────────┐
-│ Default VPC                                         │
-│                                                     │
+│ Default VPC                                        │
+│                                                    │
 │  ┌─────────────────────────────────────┐           │
 │  │ EC2 (spot or on-demand)             │           │
 │  │ AL2023 arm64 · t4g.nano             │           │
 │  │                                     │           │
 │  │  ┌───────────┐                      │           │
-│  │  │   Squid   │ ← port 8888 (HTTP)  │           │
+│  │  │   Squid   │ ← port 8888 (HTTP)   │           │
 │  │  └───────────┘                      │           │
 │  │                                     │           │
 │  │  IAM Role: AmazonSSMManagedInstance │           │
 │  │  (no SSH key, no inbound port 22)   │           │
 │  └─────────────────────────────────────┘           │
-│                                                     │
-│  Security Group:                                    │
-│    ingress: var.allowed_cidrs → proxy_port/tcp      │
+│                                                    │
+│  Security Group:                                   │
+│    ingress: var.allowed_cidrs → proxy_port/tcp     │
 │    egress:  0.0.0.0/0 → all                        │
 └────────────────────────────────────────────────────┘
 ```
