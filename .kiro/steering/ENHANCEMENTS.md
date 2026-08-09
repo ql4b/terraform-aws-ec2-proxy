@@ -6,10 +6,11 @@ Prioritized backlog of improvements, grouped by theme.
 
 ## P0 — Ship It (pre-release hygiene)
 
-- [ ] **Initial commit & `.gitignore`** — Ignore `.terraform/`, `*.tfstate*`, `*.tfvars` (secrets), `.terraform.lock.hcl` (or pin it).
+- [x] **Initial commit & `.gitignore`** — Ignores `.terraform/`, `*.tfstate*`, `*.tfvars`, `.terraform.lock.hcl`.
+- [x] **`terraform fmt` & `terraform validate`** — Clean formatting and valid syntax confirmed.
+- [x] **Conventional commits** — All commits follow [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/). See `.kiro/steering/COMMITS.md`.
+- [x] **Semantic-release & CI** — GitHub Actions workflow (`.github/workflows/release.yml`) runs `semantic-release` on push to `main`. Automatic tagging replaces manual `git tag`.
 - [ ] **Lock file** — Run `terraform init` and decide whether to check in `.terraform.lock.hcl` for reproducible provider versions.
-- [ ] **`terraform fmt` & `terraform validate`** — Confirm clean formatting and syntax before first commit.
-- [ ] **Tag v0.1.0** — Semantic version to enable `source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v0.1.0"`.
 
 ---
 
