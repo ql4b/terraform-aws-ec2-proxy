@@ -93,3 +93,16 @@ For backporting fixes to older major versions, create a branch named `N.x` (e.g.
 ### No Manual Tags
 
 Do **not** create tags manually. All tagging is handled by `semantic-release` to maintain a consistent, auditable release history.
+
+---
+
+## Definition of Done
+
+Before committing a `feat:` or `fix:` that changes module behavior:
+
+- [ ] `CURRENT_STATE.md` reflects the new capability, removed limitation, or state change
+- [ ] `ENHANCEMENTS.md` item checked off (if the work completes a backlog item)
+- [ ] `terraform fmt` passes
+- [ ] `terraform validate` passes
+
+For `docs:`, `ci:`, `chore:`, and `refactor:` commits, update steering files only if the project's state or structure meaningfully changed (e.g., new CI pipeline, new file layout).
