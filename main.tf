@@ -16,6 +16,16 @@ data "aws_subnets" "default" {
 # get current region
 data "aws_region" "current" {}
 
+# Auto-detect caller's public IP when allowed_cidrs is not explicitly set
+data "http" "caller_ip" {
+  count = length(var.allowed_cidrs) == 0 ? 1 : 0
+  url   = "https://checkip.amazonaws.com"
+}
+
+locals {
+  effective_cidrs = length(var.allowed_cidrs) > 0 ? var.allowed_cidrs : ["${trimspace(data.http.caller_ip[0].response_body)}/32"]
+}
+
 resource "aws_security_group" "proxy" {
   name   = module.this.id
   vpc_id = data.aws_vpc.default.id
@@ -24,7 +34,7 @@ resource "aws_security_group" "proxy" {
     from_port   = var.proxy_port
     to_port     = var.proxy_port
     protocol    = "tcp"
-    cidr_blocks = var.allowed_cidrs
+    cidr_blocks = local.effective_cidrs
   }
 
   egress {

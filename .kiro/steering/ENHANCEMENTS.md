@@ -16,7 +16,7 @@ Prioritized backlog of improvements, grouped by theme.
 
 ## P1 — Security & Hardening
 
-- [ ] **Default `allowed_cidrs` to empty or caller's IP** — Open-to-world default is a foot-gun. Consider requiring explicit opt-in or using a data source to detect caller IP.
+- [x] **Default `allowed_cidrs` to empty or caller's IP** — When `allowed_cidrs` is empty (default), the module auto-detects the caller's public IP via `checkip.amazonaws.com` and restricts ingress to that single /32.
 - [ ] **Squid basic auth** — Optional username/password passed via variable and injected into `squid.conf`. Prevents unauthorized use even if SG is open.
 - [ ] **Squid ACLs for destination domains** — Optional allowlist/denylist to prevent the proxy from being used as an open relay.
 - [x] **IMDSv2 enforcement** — Set `metadata_options { http_tokens = "required" }` on the instance.

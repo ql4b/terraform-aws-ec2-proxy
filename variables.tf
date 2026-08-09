@@ -9,8 +9,9 @@ variable "proxy_port" {
 }
 
 variable "allowed_cidrs" {
-  type    = list(string)
-  default = ["0.0.0.0/0"]
+  description = "List of CIDRs allowed to reach the proxy. When empty (default), the module auto-detects the caller's public IP and restricts access to that single address."
+  type        = list(string)
+  default     = []
 }
 
 variable "spot" {

@@ -1,6 +1,6 @@
 # Current State
 
-*Last updated: 2026-08-09*
+*Last updated: 2026-08-10*
 
 ## Status: v1.0.0 — Released
 
@@ -11,6 +11,7 @@ The module is **feature-complete for its minimal use case** and published on Git
 - Provisions a Squid HTTP proxy on EC2 with a single `terraform apply`
 - Spot and on-demand modes via the `spot` boolean
 - Security group properly scopes ingress to `allowed_cidrs`
+- **Caller IP auto-detection** — When `allowed_cidrs` is empty (default), the module queries `checkip.amazonaws.com` and restricts ingress to the caller's IP/32
 - IAM role with SSM access enables `aws ssm start-session` for debugging
 - Outputs provide `proxy_url` ready for `HTTP_PROXY` env var usage
 - Squid configured to hide client identity (`via off`, `forwarded_for delete`)
@@ -26,7 +27,7 @@ The module is **feature-complete for its minimal use case** and published on Git
 | **Examples** | No `examples/` directory with a ready-to-use tfvars |
 | **Documentation** | README is minimal — no architecture diagram, no prereqs section |
 | **Locking** | No `.terraform.lock.hcl` checked in |
-| **Security hardening** | `allowed_cidrs` defaults to `0.0.0.0/0` (open to world) |
+| **Security hardening** | No Squid auth; no destination ACLs; no encrypted root volume |
 | **Observability** | No health check, no CloudWatch alarms, no readiness probe |
 | **Lifecycle** | No auto-termination / TTL mechanism |
 | **Multi-proxy** | Only supports a single instance; no `count` or `for_each` at the module level |
@@ -46,6 +47,7 @@ The module is **feature-complete for its minimal use case** and published on Git
 | Terraform | ≥ 1.0 | Tested intent: 1.x series |
 | AWS Provider | ≥ 5.0 | Uses modern resource attributes |
 | cloudposse/label/null | 0.25.0 | Naming/tagging framework |
+| HTTP Provider | ≥ 3.0 | Used for caller IP auto-detection |
 | Amazon Linux 2023 | latest (SSM) | AMI resolved at apply-time |
 | Squid | AL2023 repo default | Installed via user_data |
 
