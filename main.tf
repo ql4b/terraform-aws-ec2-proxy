@@ -76,11 +76,12 @@ resource "aws_iam_role_policy_attachment" "ssm" {
 }
 
 locals {
+  ttl_shutdown  = var.ttl_hours != null ? "\nshutdown -h +${var.ttl_hours * 60}\n" : ""
   user_data     = <<-EOF
 #!/bin/bash
 dnf install -y squid
 printf 'http_port ${var.proxy_port}\nhttp_access allow all\nvia off\nforwarded_for delete\n' > /etc/squid/squid.conf
-systemctl enable --now squid
+systemctl enable --now squid${local.ttl_shutdown}
 EOF
   instance_tags = merge(module.this.tags, { Name = module.this.id })
 }
@@ -88,12 +89,13 @@ EOF
 resource "aws_spot_instance_request" "proxy" {
   count = var.spot ? 1 : 0
 
-  ami                    = data.aws_ssm_parameter.ami.value
-  instance_type          = var.instance_type
-  subnet_id              = data.aws_subnets.default.ids[0]
-  vpc_security_group_ids = [aws_security_group.proxy.id]
-  iam_instance_profile   = aws_iam_instance_profile.proxy.name
-  user_data              = local.user_data
+  ami                                  = data.aws_ssm_parameter.ami.value
+  instance_type                        = var.instance_type
+  subnet_id                            = data.aws_subnets.default.ids[0]
+  vpc_security_group_ids               = [aws_security_group.proxy.id]
+  iam_instance_profile                 = aws_iam_instance_profile.proxy.name
+  user_data                            = local.user_data
+  instance_initiated_shutdown_behavior = var.ttl_hours != null ? "terminate" : "stop"
 
   metadata_options {
     http_tokens   = "required"
@@ -120,12 +122,13 @@ resource "aws_ec2_tag" "proxy" {
 resource "aws_instance" "proxy" {
   count = var.spot ? 0 : 1
 
-  ami                    = data.aws_ssm_parameter.ami.value
-  instance_type          = var.instance_type
-  subnet_id              = data.aws_subnets.default.ids[0]
-  vpc_security_group_ids = [aws_security_group.proxy.id]
-  iam_instance_profile   = aws_iam_instance_profile.proxy.name
-  user_data              = local.user_data
+  ami                                  = data.aws_ssm_parameter.ami.value
+  instance_type                        = var.instance_type
+  subnet_id                            = data.aws_subnets.default.ids[0]
+  vpc_security_group_ids               = [aws_security_group.proxy.id]
+  iam_instance_profile                 = aws_iam_instance_profile.proxy.name
+  user_data                            = local.user_data
+  instance_initiated_shutdown_behavior = var.ttl_hours != null ? "terminate" : "stop"
 
   metadata_options {
     http_tokens   = "required"

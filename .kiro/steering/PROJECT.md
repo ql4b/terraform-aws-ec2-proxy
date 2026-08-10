@@ -52,7 +52,7 @@ The design intentionally optimizes for **low cost and disposability** over durab
 
 ## Module Interface (Summary)
 
-**Inputs:** `instance_type`, `proxy_port`, `allowed_cidrs`, `spot` + all null-label context vars.
+**Inputs:** `instance_type`, `proxy_port`, `allowed_cidrs`, `spot`, `ttl_hours` + all null-label context vars.
 
 **Outputs:** `public_ip`, `instance_id`, `proxy_url`, `instance_type`, `is_spot`, `region`.
 
