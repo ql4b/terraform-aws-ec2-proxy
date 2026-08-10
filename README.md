@@ -236,4 +236,4 @@ Approximate cost for `t4g.nano` spot in `us-east-1`: **~$0.0016/hour** ($1.15/mo
 
 ## License
 
-Apache 2.0 — see [LICENSE](LICENSE) for details.
+Apache 2.0 — see [LICENCE](LICENCE) for details.
