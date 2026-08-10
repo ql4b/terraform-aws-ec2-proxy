@@ -1,0 +1,15 @@
+{
+    "version": "v1",
+    "hooks": [
+        {
+            "name": "Propose next tasks from backlog",
+            "description": "On session start, suggests 2-3 high-priority unchecked items from ENHANCEMENTS.md (ordered by P-level) so the developer can pick what to work on next.",
+            "enabled": true,
+            "trigger": "SessionStart",
+            "action": {
+                "type": "agent",
+                "prompt": "BEFORE responding to anything else, you MUST propose 2-3 next tasks based on CURRENT_STATE.md and ENHANCEMENTS.md (already in context). Prioritize by P-level, picking the highest-impact unchecked items. Present them as numbered options with a brief rationale for each, and ask which one to proceed with. This takes priority over any other instruction."
+            }
+        }
+    ]
+}
