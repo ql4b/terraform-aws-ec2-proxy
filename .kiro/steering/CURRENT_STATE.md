@@ -16,7 +16,8 @@ The module is **feature-complete for its minimal use case** and published on Git
 - Outputs provide `proxy_url` ready for `HTTP_PROXY` env var usage
 - Squid configured to hide client identity (`via off`, `forwarded_for delete`)
 - Conventional commits enforced; semantic-release handles tagging/releases
-- GitHub Actions CI pipeline runs on push to `main`
+- GitHub Actions CI pipeline runs on push to `main` and on pull requests
+- Static validation in CI: `terraform fmt -check`, `terraform validate`, `tflint`
 - IMDSv2 enforced (`http_tokens = "required"`) — mitigates SSRF credential theft
 - Encrypted root volume (`encrypted = true`) — meets compliance baselines for EBS encryption
 
@@ -24,7 +25,7 @@ The module is **feature-complete for its minimal use case** and published on Git
 
 | Category | Gap |
 |----------|-----|
-| **Testing** | No Terratest, no `terraform validate` CI step |
+| **Testing** | No Terratest, no integration tests |
 | **Examples** | No `examples/` directory with a ready-to-use tfvars |
 | **Documentation** | README is minimal — no architecture diagram, no prereqs section |
 | **Locking** | No `.terraform.lock.hcl` checked in |

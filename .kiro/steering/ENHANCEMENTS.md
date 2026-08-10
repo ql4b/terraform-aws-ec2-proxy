@@ -47,7 +47,7 @@ Prioritized backlog of improvements, grouped by theme.
 
 - [ ] **`examples/` directory** — At minimum: `examples/simple/main.tf` and `examples/restricted/main.tf` (with explicit CIDRs and auth).
 - [ ] **Automated tests** — Terratest (Go) or `tftest` (native Terraform testing) that deploys the module, curls through the proxy, and destroys.
-- [ ] **CI pipeline** — GitHub Actions with: `fmt -check`, `validate`, `tflint`, `tfsec`/`checkov`, and optional integration test on PR.
+- [ ] **CI pipeline** — Add `tfsec`/`checkov` and optional integration test to the existing workflow.
 - [ ] **terraform-docs** — Auto-generate input/output tables in README via `terraform-docs` hook or CI step.
 - [ ] **Pre-commit hooks** — `.pre-commit-config.yaml` with `terraform fmt`, `terraform validate`, `tflint`, `tfsec`.
 
