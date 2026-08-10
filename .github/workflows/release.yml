@@ -89,6 +89,9 @@ jobs:
         with:
           fetch-depth: 0
 
+      - name: Pull latest (after docs job may have pushed)
+        run: git pull --ff-only origin main
+
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
