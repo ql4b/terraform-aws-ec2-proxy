@@ -27,10 +27,12 @@ locals {
 }
 
 resource "aws_security_group" "proxy" {
-  name   = module.this.id
-  vpc_id = data.aws_vpc.default.id
+  name        = module.this.id
+  description = "Allow inbound proxy traffic and all outbound for Squid forward proxy"
+  vpc_id      = data.aws_vpc.default.id
 
   ingress {
+    description = "Proxy port from allowed CIDRs"
     from_port   = var.proxy_port
     to_port     = var.proxy_port
     protocol    = "tcp"
@@ -38,6 +40,7 @@ resource "aws_security_group" "proxy" {
   }
 
   egress {
+    description = "Allow all outbound traffic for proxy forwarding"
     from_port   = 0
     to_port     = 0
     protocol    = "-1"

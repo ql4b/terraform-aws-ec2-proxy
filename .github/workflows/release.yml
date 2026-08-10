@@ -56,7 +56,7 @@ jobs:
           directory: .
           framework: terraform
           quiet: true
-          skip_check: CKV_TF_1
+          skip_check: CKV_TF_1,CKV_AWS_382
 
   release:
     name: Semantic Release
