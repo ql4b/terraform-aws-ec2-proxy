@@ -58,9 +58,29 @@ jobs:
           quiet: true
           skip_check: CKV_TF_1,CKV_AWS_382
 
+  docs:
+    name: Update Docs
+    needs: validate
+    if: github.event_name == 'push'
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref || github.ref_name }}
+
+      - name: Generate terraform-docs
+        uses: terraform-docs/gh-actions@v1
+        with:
+          working-dir: .
+          output-file: README.md
+          output-method: inject
+          git-push: true
+          git-commit-message: "docs: auto-update terraform-docs"
+
   release:
     name: Semantic Release
-    needs: validate
+    needs: [validate, docs]
     if: github.event_name == 'push'
     runs-on: ubuntu-latest
     steps:
