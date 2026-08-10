@@ -18,3 +18,9 @@ variable "spot" {
   type    = bool
   default = true
 }
+
+variable "ttl_hours" {
+  description = "Hours after launch before the instance self-terminates. Set to null (default) to disable auto-termination."
+  type        = number
+  default     = null
+}

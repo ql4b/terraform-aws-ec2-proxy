@@ -26,7 +26,7 @@ Prioritized backlog of improvements, grouped by theme.
 
 ## P2 — Reliability & Lifecycle
 
-- [ ] **TTL / auto-terminate** — A CloudWatch Events rule or instance tag + Lambda that destroys the instance after N hours, preventing cost leakage from forgotten proxies.
+- [x] **TTL / auto-terminate** — `ttl_hours` variable triggers `shutdown -h` in user_data + `instance_initiated_shutdown_behavior = "terminate"`. No extra infra required.
 - [ ] **Health check output** — A `null_resource` with a provisioner or an output script that curls through the proxy to confirm it's live.
 - [ ] **Spot interruption handling** — Use a Spot Fleet or capacity-optimized allocation to reduce interruption risk, or emit an SNS notification on interruption.
 - [ ] **Configurable AZ** — Allow passing a specific subnet ID or AZ preference instead of always taking `ids[0]`.

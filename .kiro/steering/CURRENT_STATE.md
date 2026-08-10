@@ -20,6 +20,7 @@ The module is **feature-complete for its minimal use case** and published on Git
 - Static validation in CI: `terraform fmt -check`, `terraform validate`, `tflint`
 - IMDSv2 enforced (`http_tokens = "required"`) — mitigates SSRF credential theft
 - Encrypted root volume (`encrypted = true`) — meets compliance baselines for EBS encryption
+- **TTL / auto-terminate** — Optional `ttl_hours` variable; instance self-terminates after N hours via `shutdown -h` + `instance_initiated_shutdown_behavior = "terminate"`
 
 ## What's Missing
 
@@ -30,7 +31,7 @@ The module is **feature-complete for its minimal use case** and published on Git
 | **Locking** | No `.terraform.lock.hcl` checked in |
 | **Security hardening** | No Squid auth; no destination ACLs |
 | **Observability** | No health check, no CloudWatch alarms, no readiness probe |
-| **Lifecycle** | No auto-termination / TTL mechanism |
+| **Lifecycle** | ~~No auto-termination / TTL mechanism~~ ✅ Implemented via `ttl_hours` |
 | **Multi-proxy** | Only supports a single instance; no `count` or `for_each` at the module level |
 
 ## Known Limitations
