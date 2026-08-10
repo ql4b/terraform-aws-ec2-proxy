@@ -89,6 +89,8 @@ terraform destroy
 
 - [`examples/simple`](examples/simple) — All defaults, caller IP auto-detected
 - [`examples/restricted`](examples/restricted) — Explicit CIDRs, on-demand instance, custom port
+- [`examples/authenticated`](examples/authenticated) — Proxy with HTTP basic auth
+- [`examples/ephemeral`](examples/ephemeral) — Auto-terminates after a TTL
 
 ### With Authentication
 
