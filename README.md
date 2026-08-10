@@ -1,35 +1,147 @@
 # terraform-aws-ec2-proxy
 
-> Terraform module for a disposable EC2 proxy instance for IP diversification
+Disposable EC2-based HTTP proxy for IP diversification. Deploy a Squid forward proxy with a fresh public IP on every `terraform apply` cycle.
 
-## Usage
+## Use Cases
+
+- Rotate source IPs for web scraping or API testing
+- Validate geo-restrictions or firewall rules from a cloud IP
+- Avoid rate limits by cycling proxy instances
+- One-command throwaway proxy with zero residual cost
+
+## Prerequisites
+
+- Terraform >= 1.0
+- AWS account with a **default VPC** (present in all accounts unless manually deleted)
+- AWS credentials configured (`aws configure`, env vars, or IAM role)
+- No pre-existing infrastructure required
+
+## Quick Start
 
 ```hcl
 module "proxy" {
   source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.0.0"
 
-  namespace = "cloudless"
+  namespace = "myorg"
   name      = "proxy"
+}
+
+output "proxy_url" {
+  value     = module.proxy.proxy_url
+  sensitive = true
 }
 ```
 
-> **Tip:** Always pin to a specific release tag (e.g. `?ref=v2.0.0`) to avoid
-> unexpected changes when the module is updated. Browse available versions on the
-> [Releases](https://github.com/ql4b/terraform-aws-ec2-proxy/releases) page.
+```bash
+terraform init
+terraform apply
+
+# Use the proxy
+export HTTP_PROXY=$(terraform output -raw proxy_url)
+curl http://httpbin.org/ip
+
+# Done — destroy to stop billing
+terraform destroy
+```
+
+> **Tip:** Always pin to a specific release tag (e.g. `?ref=v2.0.0`). Browse
+> available versions on the [Releases](https://github.com/ql4b/terraform-aws-ec2-proxy/releases) page.
+
+## Architecture
+
+```
+┌─────────────────────────────────────────────────────┐
+│ Default VPC                                         │
+│                                                     │
+│  ┌──────────────────────────────────────┐           │
+│  │ EC2 (spot or on-demand)              │           │
+│  │ Amazon Linux 2023 · arm64 · t4g.nano │           │
+│  │                                      │           │
+│  │  ┌───────────┐                       │           │
+│  │  │   Squid   │ ← port 8888 (HTTP)   │           │
+│  │  └───────────┘                       │           │
+│  │                                      │           │
+│  │  IAM Role: AmazonSSMManagedInstance  │           │
+│  │  (no SSH key, no inbound port 22)    │           │
+│  └──────────────────────────────────────┘           │
+│                                                     │
+│  Security Group:                                    │
+│    ingress: caller IP (auto) → proxy_port/tcp       │
+│    egress:  0.0.0.0/0 → all                         │
+└─────────────────────────────────────────────────────┘
+```
+
+## Features
+
+| Feature | Details |
+|---------|---------|
+| **Spot instances** | Default `spot = true` for ~70% cost savings |
+| **ARM64 (Graviton)** | Best price-performance at t4g.nano |
+| **Auto-detected ingress** | When `allowed_cidrs` is empty, restricts to caller's IP/32 |
+| **Basic auth** | Optional `proxy_username` + `proxy_password` for Squid authentication |
+| **TTL auto-terminate** | `ttl_hours` triggers self-termination — no forgotten instances |
+| **IMDSv2 enforced** | Mitigates SSRF credential theft |
+| **Encrypted EBS** | Root volume encryption enabled by default |
+| **SSM access** | Debug via `aws ssm start-session` — no SSH keys needed |
+| **Privacy headers** | `via off`, `forwarded_for delete` hides client identity |
 
 ## Examples
 
-- [`examples/simple`](examples/simple) — All defaults, caller IP auto-detected.
-- [`examples/restricted`](examples/restricted) — Explicit CIDRs, on-demand instance, custom port.
+- [`examples/simple`](examples/simple) — All defaults, caller IP auto-detected
+- [`examples/restricted`](examples/restricted) — Explicit CIDRs, on-demand instance, custom port
 
-## Design
+### With Authentication
 
-- AL2023 arm64 AMI via SSM parameter (always latest)
-- Squid HTTP proxy — available in AL2023 default repos
-- Default VPC, dedicated security group
-- IAM role with `AmazonSSMManagedInstanceCore` — no SSH, no key pairs
-- `spot = true` uses `aws_spot_instance_request`, `spot = false` uses `aws_instance`
-- IMDSv2 enforced, encrypted root volume
+```hcl
+module "proxy" {
+  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.0.0"
+
+  namespace = "myorg"
+  name      = "proxy"
+
+  proxy_username = "user"
+  proxy_password = "s3cret"
+}
+```
+
+### Auto-Terminate After 2 Hours
+
+```hcl
+module "proxy" {
+  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.0.0"
+
+  namespace = "myorg"
+  name      = "proxy"
+  ttl_hours = 2
+}
+```
+
+## Security
+
+- **Network isolation:** Security group restricts inbound to only the specified CIDRs (or auto-detected caller IP)
+- **No SSH:** No key pair attached, no port 22 open — access via SSM only
+- **Optional auth:** Set `proxy_username` and `proxy_password` to require credentials
+- **IMDSv2:** Instance metadata requires session tokens (prevents SSRF attacks)
+- **Encrypted storage:** Root EBS volume is encrypted at rest
+
+> **Note:** When using `allowed_cidrs = []` (default), the module calls `checkip.amazonaws.com`
+> at plan time to detect your IP. If you're behind a VPN or NAT that changes IPs, set explicit CIDRs.
+
+## Cost
+
+Approximate cost for `t4g.nano` spot in `us-east-1`: **~$0.0016/hour** ($1.15/month if running 24/7). Designed to be deployed and destroyed per-use — typical cost is cents per session.
+
+## Design Decisions
+
+| Decision | Rationale |
+|----------|-----------|
+| Spot instance default | Acceptable for ephemeral workloads; ~70% savings |
+| ARM64 (Graviton) | Best price-performance for nano instances |
+| Default VPC | Zero pre-existing infra — works in any AWS account |
+| No SSH / SSM only | Reduced attack surface; no key management |
+| Squid from AL2023 repos | Zero external dependencies |
+| Cloud Posse null-label | Consistent naming/tagging |
+| Stateless instance | Reprovisioned, never patched in-place |
 
 <!-- BEGIN_TF_DOCS -->
 ## Requirements
@@ -74,38 +186,52 @@ module "proxy" {
 
 | Name | Description | Type | Default | Required |
 |------|-------------|------|---------|:--------:|
-| <a name="input_additional_tag_map"></a> [additional\_tag\_map](#input\_additional\_tag\_map) | Additional key-value pairs to add to each map in `tags_as_list_of_maps`. Not added to `tags` or `id`.<br/>This is for some rare cases where resources want additional configuration of tags<br/>and therefore take a list of maps with tag key, value, and additional configuration. | `map(string)` | `{}` | no |
 | <a name="input_allowed_cidrs"></a> [allowed\_cidrs](#input\_allowed\_cidrs) | List of CIDRs allowed to reach the proxy. When empty (default), the module auto-detects the caller's public IP and restricts access to that single address. | `list(string)` | `[]` | no |
-| <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes (e.g. `workers` or `cluster`) to add to `id`,<br/>in the order they appear in the list. New attributes are appended to the<br/>end of the list. The elements of the list are joined by the `delimiter`<br/>and treated as a single ID element. | `list(string)` | `[]` | no |
-| <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once.<br/>See description of individual variables for details.<br/>Leave string and numeric variables as `null` to use default value.<br/>Individual variable settings (non-null) override settings in context object,<br/>except for attributes, tags, and additional\_tag\_map, which are merged. | `any` | <pre>{<br/>  "additional_tag_map": {},<br/>  "attributes": [],<br/>  "delimiter": null,<br/>  "descriptor_formats": {},<br/>  "enabled": true,<br/>  "environment": null,<br/>  "id_length_limit": null,<br/>  "label_key_case": null,<br/>  "label_order": [],<br/>  "label_value_case": null,<br/>  "labels_as_tags": [<br/>    "unset"<br/>  ],<br/>  "name": null,<br/>  "namespace": null,<br/>  "regex_replace_chars": null,<br/>  "stage": null,<br/>  "tags": {},<br/>  "tenant": null<br/>}</pre> | no |
-| <a name="input_delimiter"></a> [delimiter](#input\_delimiter) | Delimiter to be used between ID elements.<br/>Defaults to `-` (hyphen). Set to `""` to use no delimiter at all. | `string` | `null` | no |
-| <a name="input_descriptor_formats"></a> [descriptor\_formats](#input\_descriptor\_formats) | Describe additional descriptors to be output in the `descriptors` output map.<br/>Map of maps. Keys are names of descriptors. Values are maps of the form<br/>`{<br/>   format = string<br/>   labels = list(string)<br/>}`<br/>(Type is `any` so the map values can later be enhanced to provide additional options.)<br/>`format` is a Terraform format string to be passed to the `format()` function.<br/>`labels` is a list of labels, in order, to pass to `format()` function.<br/>Label values will be normalized before being passed to `format()` so they will be<br/>identical to how they appear in `id`.<br/>Default is `{}` (`descriptors` output will be empty). | `any` | `{}` | no |
-| <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources | `bool` | `null` | no |
-| <a name="input_environment"></a> [environment](#input\_environment) | ID element. Usually used for region e.g. 'uw2', 'us-west-2', OR role 'prod', 'staging', 'dev', 'UAT' | `string` | `null` | no |
-| <a name="input_id_length_limit"></a> [id\_length\_limit](#input\_id\_length\_limit) | Limit `id` to this many characters (minimum 6).<br/>Set to `0` for unlimited length.<br/>Set to `null` for keep the existing setting, which defaults to `0`.<br/>Does not affect `id_full`. | `number` | `null` | no |
-| <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | n/a | `string` | `"t4g.nano"` | no |
-| <a name="input_label_key_case"></a> [label\_key\_case](#input\_label\_key\_case) | Controls the letter case of the `tags` keys (label names) for tags generated by this module.<br/>Does not affect keys of tags passed in via the `tags` input.<br/>Possible values: `lower`, `title`, `upper`.<br/>Default value: `title`. | `string` | `null` | no |
-| <a name="input_label_order"></a> [label\_order](#input\_label\_order) | The order in which the labels (ID elements) appear in the `id`.<br/>Defaults to ["namespace", "environment", "stage", "name", "attributes"].<br/>You can omit any of the 6 labels ("tenant" is the 6th), but at least one must be present. | `list(string)` | `null` | no |
-| <a name="input_label_value_case"></a> [label\_value\_case](#input\_label\_value\_case) | Controls the letter case of ID elements (labels) as included in `id`,<br/>set as tag values, and output by this module individually.<br/>Does not affect values of tags passed in via the `tags` input.<br/>Possible values: `lower`, `title`, `upper` and `none` (no transformation).<br/>Set this to `title` and set `delimiter` to `""` to yield Pascal Case IDs.<br/>Default value: `lower`. | `string` | `null` | no |
-| <a name="input_labels_as_tags"></a> [labels\_as\_tags](#input\_labels\_as\_tags) | Set of labels (ID elements) to include as tags in the `tags` output.<br/>Default is to include all labels.<br/>Tags with empty values will not be included in the `tags` output.<br/>Set to `[]` to suppress all generated tags.<br/>**Notes:**<br/>  The value of the `name` tag, if included, will be the `id`, not the `name`.<br/>  Unlike other `null-label` inputs, the initial setting of `labels_as_tags` cannot be<br/>  changed in later chained modules. Attempts to change it will be silently ignored. | `set(string)` | <pre>[<br/>  "default"<br/>]</pre> | no |
-| <a name="input_name"></a> [name](#input\_name) | ID element. Usually the component or solution name, e.g. 'app' or 'jenkins'.<br/>This is the only ID element not also included as a `tag`.<br/>The "name" tag is set to the full `id` string. There is no tag with the value of the `name` input. | `string` | `null` | no |
-| <a name="input_namespace"></a> [namespace](#input\_namespace) | ID element. Usually an abbreviation of your organization name, e.g. 'eg' or 'cp', to help ensure generated IDs are globally unique | `string` | `null` | no |
-| <a name="input_proxy_port"></a> [proxy\_port](#input\_proxy\_port) | n/a | `number` | `8888` | no |
-| <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Terraform regular expression (regex) string.<br/>Characters matching the regex will be removed from the ID elements.<br/>If not set, `"/[^a-zA-Z0-9-]/"` is used to remove all characters other than hyphens, letters and digits. | `string` | `null` | no |
-| <a name="input_spot"></a> [spot](#input\_spot) | n/a | `bool` | `true` | no |
-| <a name="input_stage"></a> [stage](#input\_stage) | ID element. Usually used to indicate role, e.g. 'prod', 'staging', 'source', 'build', 'test', 'deploy', 'release' | `string` | `null` | no |
-| <a name="input_tags"></a> [tags](#input\_tags) | Additional tags (e.g. `{'BusinessUnit': 'XYZ'}`).<br/>Neither the tag keys nor the tag values will be modified by this module. | `map(string)` | `{}` | no |
-| <a name="input_tenant"></a> [tenant](#input\_tenant) | ID element \_(Rarely used, not included by default)\_. A customer identifier, indicating who this instance of a resource is for | `string` | `null` | no |
+| <a name="input_instance_type"></a> [instance\_type](#input\_instance\_type) | EC2 instance type for the proxy. | `string` | `"t4g.nano"` | no |
+| <a name="input_proxy_password"></a> [proxy\_password](#input\_proxy\_password) | Password for Squid basic authentication. Both proxy\_username and proxy\_password must be set to enable auth. | `string` | `null` | no |
+| <a name="input_proxy_port"></a> [proxy\_port](#input\_proxy\_port) | TCP port Squid listens on. | `number` | `8888` | no |
+| <a name="input_proxy_username"></a> [proxy\_username](#input\_proxy\_username) | Username for Squid basic authentication. Both proxy\_username and proxy\_password must be set to enable auth. | `string` | `null` | no |
+| <a name="input_spot"></a> [spot](#input\_spot) | Use a spot instance for cost savings. Set to false for on-demand. | `bool` | `true` | no |
 | <a name="input_ttl_hours"></a> [ttl\_hours](#input\_ttl\_hours) | Hours after launch before the instance self-terminates. Set to null (default) to disable auto-termination. | `number` | `null` | no |
+
+<details>
+<summary>Cloud Posse null-label inputs (click to expand)</summary>
+
+| Name | Description | Type | Default | Required |
+|------|-------------|------|---------|:--------:|
+| <a name="input_additional_tag_map"></a> [additional\_tag\_map](#input\_additional\_tag\_map) | Additional key-value pairs to add to each map in `tags_as_list_of_maps`. | `map(string)` | `{}` | no |
+| <a name="input_attributes"></a> [attributes](#input\_attributes) | ID element. Additional attributes to add to `id`. | `list(string)` | `[]` | no |
+| <a name="input_context"></a> [context](#input\_context) | Single object for setting entire context at once. | `any` | See `context.tf` | no |
+| <a name="input_delimiter"></a> [delimiter](#input\_delimiter) | Delimiter between ID elements. Defaults to `-`. | `string` | `null` | no |
+| <a name="input_enabled"></a> [enabled](#input\_enabled) | Set to false to prevent the module from creating any resources. | `bool` | `null` | no |
+| <a name="input_environment"></a> [environment](#input\_environment) | ID element. Usually used for region or role. | `string` | `null` | no |
+| <a name="input_id_length_limit"></a> [id\_length\_limit](#input\_id\_length\_limit) | Limit `id` to this many characters (minimum 6). | `number` | `null` | no |
+| <a name="input_label_key_case"></a> [label\_key\_case](#input\_label\_key\_case) | Controls the letter case of tag keys. | `string` | `null` | no |
+| <a name="input_label_order"></a> [label\_order](#input\_label\_order) | The order in which labels appear in `id`. | `list(string)` | `null` | no |
+| <a name="input_label_value_case"></a> [label\_value\_case](#input\_label\_value\_case) | Controls the letter case of ID elements. | `string` | `null` | no |
+| <a name="input_labels_as_tags"></a> [labels\_as\_tags](#input\_labels\_as\_tags) | Set of labels to include as tags. | `set(string)` | `["default"]` | no |
+| <a name="input_name"></a> [name](#input\_name) | ID element. Usually the component or solution name. | `string` | `null` | no |
+| <a name="input_namespace"></a> [namespace](#input\_namespace) | ID element. Usually an abbreviation of your organization name. | `string` | `null` | no |
+| <a name="input_regex_replace_chars"></a> [regex\_replace\_chars](#input\_regex\_replace\_chars) | Regex for characters to remove from ID elements. | `string` | `null` | no |
+| <a name="input_stage"></a> [stage](#input\_stage) | ID element. Usually used to indicate role. | `string` | `null` | no |
+| <a name="input_tags"></a> [tags](#input\_tags) | Additional tags. | `map(string)` | `{}` | no |
+| <a name="input_tenant"></a> [tenant](#input\_tenant) | ID element. A customer identifier. | `string` | `null` | no |
+| <a name="input_descriptor_formats"></a> [descriptor\_formats](#input\_descriptor\_formats) | Describe additional descriptors for the `descriptors` output map. | `any` | `{}` | no |
+
+</details>
 
 ## Outputs
 
 | Name | Description |
 |------|-------------|
-| <a name="output_instance_id"></a> [instance\_id](#output\_instance\_id) | n/a |
-| <a name="output_instance_type"></a> [instance\_type](#output\_instance\_type) | n/a |
-| <a name="output_is_spot"></a> [is\_spot](#output\_is\_spot) | n/a |
-| <a name="output_proxy_url"></a> [proxy\_url](#output\_proxy\_url) | n/a |
-| <a name="output_public_ip"></a> [public\_ip](#output\_public\_ip) | n/a |
-| <a name="output_region"></a> [region](#output\_region) | n/a |
+| <a name="output_public_ip"></a> [public\_ip](#output\_public\_ip) | Public IP address of the proxy instance |
+| <a name="output_instance_id"></a> [instance\_id](#output\_instance\_id) | EC2 instance ID |
+| <a name="output_proxy_url"></a> [proxy\_url](#output\_proxy\_url) | Full proxy URL (includes credentials if auth is enabled) |
+| <a name="output_instance_type"></a> [instance\_type](#output\_instance\_type) | Instance type of the proxy |
+| <a name="output_is_spot"></a> [is\_spot](#output\_is\_spot) | Whether the instance is a spot instance |
+| <a name="output_region"></a> [region](#output\_region) | AWS region the proxy is deployed in |
 <!-- END_TF_DOCS -->
+
+## License
+
+Apache 2.0 — see [LICENSE](LICENSE) for details.
