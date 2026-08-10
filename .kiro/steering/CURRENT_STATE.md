@@ -26,7 +26,6 @@ The module is **feature-complete for its minimal use case** and published on Git
 | Category | Gap |
 |----------|-----|
 | **Testing** | No Terratest, no integration tests |
-| **Examples** | No `examples/` directory with a ready-to-use tfvars |
 | **Documentation** | README is minimal — no architecture diagram, no prereqs section |
 | **Locking** | No `.terraform.lock.hcl` checked in |
 | **Security hardening** | No Squid auth; no destination ACLs |

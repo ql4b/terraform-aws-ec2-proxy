@@ -45,7 +45,7 @@ Prioritized backlog of improvements, grouped by theme.
 
 ## P4 — Developer Experience
 
-- [ ] **`examples/` directory** — At minimum: `examples/simple/main.tf` and `examples/restricted/main.tf` (with explicit CIDRs and auth).
+- [x] **`examples/` directory** — `examples/simple/main.tf` and `examples/restricted/main.tf` (with explicit CIDRs).
 - [ ] **Automated tests** — Terratest (Go) or `tftest` (native Terraform testing) that deploys the module, curls through the proxy, and destroys.
 - [ ] **CI pipeline** — Add `tfsec`/`checkov` and optional integration test to the existing workflow.
 - [ ] **terraform-docs** — Auto-generate input/output tables in README via `terraform-docs` hook or CI step.
