@@ -20,7 +20,7 @@ Prioritized backlog of improvements, grouped by theme.
 - [ ] **Squid basic auth** — Optional username/password passed via variable and injected into `squid.conf`. Prevents unauthorized use even if SG is open.
 - [ ] **Squid ACLs for destination domains** — Optional allowlist/denylist to prevent the proxy from being used as an open relay.
 - [x] **IMDSv2 enforcement** — Set `metadata_options { http_tokens = "required" }` on the instance.
-- [ ] **Encrypted root volume** — Add `root_block_device { encrypted = true }` for compliance.
+- [x] **Encrypted root volume** — Add `root_block_device { encrypted = true }` for compliance.
 
 ---
 

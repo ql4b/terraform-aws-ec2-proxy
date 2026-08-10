@@ -18,6 +18,7 @@ The module is **feature-complete for its minimal use case** and published on Git
 - Conventional commits enforced; semantic-release handles tagging/releases
 - GitHub Actions CI pipeline runs on push to `main`
 - IMDSv2 enforced (`http_tokens = "required"`) — mitigates SSRF credential theft
+- Encrypted root volume (`encrypted = true`) — meets compliance baselines for EBS encryption
 
 ## What's Missing
 
@@ -27,7 +28,7 @@ The module is **feature-complete for its minimal use case** and published on Git
 | **Examples** | No `examples/` directory with a ready-to-use tfvars |
 | **Documentation** | README is minimal — no architecture diagram, no prereqs section |
 | **Locking** | No `.terraform.lock.hcl` checked in |
-| **Security hardening** | No Squid auth; no destination ACLs; no encrypted root volume |
+| **Security hardening** | No Squid auth; no destination ACLs |
 | **Observability** | No health check, no CloudWatch alarms, no readiness probe |
 | **Lifecycle** | No auto-termination / TTL mechanism |
 | **Multi-proxy** | Only supports a single instance; no `count` or `for_each` at the module level |

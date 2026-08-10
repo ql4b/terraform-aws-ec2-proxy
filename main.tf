@@ -97,6 +97,10 @@ resource "aws_spot_instance_request" "proxy" {
     http_endpoint = "enabled"
   }
 
+  root_block_device {
+    encrypted = true
+  }
+
   wait_for_fulfillment = true
   spot_type            = "one-time"
 
@@ -123,6 +127,10 @@ resource "aws_instance" "proxy" {
   metadata_options {
     http_tokens   = "required"
     http_endpoint = "enabled"
+  }
+
+  root_block_device {
+    encrypted = true
   }
 
   tags = local.instance_tags
