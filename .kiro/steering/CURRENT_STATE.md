@@ -25,7 +25,7 @@ The module is **feature-complete for its minimal use case** and published on Git
 
 | Category | Gap |
 |----------|-----|
-| **Testing** | No Terratest, no integration tests |
+| **Testing** | No integration tests — CI AWS account setup pending (see `CI_AWS_SETUP.md`) |
 | **Documentation** | README is minimal — no architecture diagram, no prereqs section |
 | **Locking** | No `.terraform.lock.hcl` checked in |
 | **Security hardening** | No Squid auth; no destination ACLs |
@@ -60,6 +60,7 @@ The module is **feature-complete for its minimal use case** and published on Git
 ├── .gitignore
 ├── .kiro/steering/                 # Project steering docs
 │   ├── COMMITS.md
+│   ├── CI_AWS_SETUP.md
 │   ├── CURRENT_STATE.md
 │   ├── ENHANCEMENTS.md
 │   └── PROJECT.md

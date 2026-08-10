@@ -46,7 +46,7 @@ Prioritized backlog of improvements, grouped by theme.
 ## P4 — Developer Experience
 
 - [x] **`examples/` directory** — `examples/simple/main.tf` and `examples/restricted/main.tf` (with explicit CIDRs).
-- [ ] **Automated tests** — Terratest (Go) or `tftest` (native Terraform testing) that deploys the module, curls through the proxy, and destroys.
+- [ ] **Automated tests** — Integration test that deploys the module, curls through the proxy, and destroys. Requires CI AWS account setup — see `.kiro/steering/CI_AWS_SETUP.md`.
 - [x] **CI pipeline** — GitHub Actions with: `fmt -check`, `validate`, `tflint`, `checkov` on PRs and push to `main`.
 - [ ] **terraform-docs** — Auto-generate input/output tables in README via `terraform-docs` hook or CI step.
 - [ ] **Pre-commit hooks** — `.pre-commit-config.yaml` with `terraform fmt`, `terraform validate`, `tflint`, `tfsec`.
