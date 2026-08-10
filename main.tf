@@ -76,13 +76,39 @@ resource "aws_iam_role_policy_attachment" "ssm" {
 }
 
 locals {
-  ttl_shutdown  = var.ttl_hours != null ? "\nshutdown -h +${var.ttl_hours * 60}\n" : ""
-  user_data     = <<-EOF
+  ttl_shutdown = var.ttl_hours != null ? "\nshutdown -h +${var.ttl_hours * 60}\n" : ""
+  auth_enabled = var.proxy_username != null && var.proxy_password != null
+
+  squid_conf_noauth = <<-CONF
+http_port ${var.proxy_port}
+http_access allow all
+via off
+forwarded_for delete
+CONF
+
+  squid_conf_auth = <<-CONF
+http_port ${var.proxy_port}
+auth_param basic program /usr/lib64/squid/basic_ncsa_auth /etc/squid/passwd
+auth_param basic realm proxy
+acl authenticated proxy_auth REQUIRED
+http_access allow authenticated
+http_access deny all
+via off
+forwarded_for delete
+CONF
+
+  squid_conf = local.auth_enabled ? local.squid_conf_auth : local.squid_conf_noauth
+
+  htpasswd_cmd = local.auth_enabled ? "dnf install -y httpd-tools\nhtpasswd -cb /etc/squid/passwd '${var.proxy_username}' '${var.proxy_password}'\n" : ""
+
+  user_data = <<-EOF
 #!/bin/bash
 dnf install -y squid
-printf 'http_port ${var.proxy_port}\nhttp_access allow all\nvia off\nforwarded_for delete\n' > /etc/squid/squid.conf
+${local.htpasswd_cmd}cat > /etc/squid/squid.conf << 'SQUIDEOF'
+${local.squid_conf}SQUIDEOF
 systemctl enable --now squid${local.ttl_shutdown}
 EOF
+
   instance_tags = merge(module.this.tags, { Name = module.this.id })
 }
 

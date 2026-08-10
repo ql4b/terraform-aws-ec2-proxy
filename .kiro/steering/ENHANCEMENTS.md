@@ -10,14 +10,14 @@ Prioritized backlog of improvements, grouped by theme.
 - [x] **`terraform fmt` & `terraform validate`** — Clean formatting and valid syntax confirmed.
 - [x] **Conventional commits** — All commits follow [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/). See `.kiro/steering/COMMITS.md`.
 - [x] **Semantic-release & CI** — GitHub Actions workflow (`.github/workflows/release.yml`) runs `semantic-release` on push to `main`. Automatic tagging replaces manual `git tag`.
-- [ ] **Lock file** — Run `terraform init` and decide whether to check in `.terraform.lock.hcl` for reproducible provider versions.
+- [x] **Lock file** — `.terraform.lock.hcl` checked in with hashes for `darwin_arm64` and `linux_amd64`.
 
 ---
 
 ## P1 — Security & Hardening
 
 - [x] **Default `allowed_cidrs` to empty or caller's IP** — When `allowed_cidrs` is empty (default), the module auto-detects the caller's public IP via `checkip.amazonaws.com` and restricts ingress to that single /32.
-- [ ] **Squid basic auth** — Optional username/password passed via variable and injected into `squid.conf`. Prevents unauthorized use even if SG is open.
+- [x] **Squid basic auth** — Optional `proxy_username`/`proxy_password` variables; when both set, Squid requires HTTP basic authentication via `basic_ncsa_auth`.
 - [ ] **Squid ACLs for destination domains** — Optional allowlist/denylist to prevent the proxy from being used as an open relay.
 - [x] **IMDSv2 enforcement** — Set `metadata_options { http_tokens = "required" }` on the instance.
 - [x] **Encrypted root volume** — Add `root_block_device { encrypted = true }` for compliance.
