@@ -61,6 +61,15 @@ Prioritized backlog of improvements, grouped by theme.
 
 ---
 
+## P6 — Public Repo Safeguards
+
+- [ ] **Pre-commit secret scanning** — Add `gitleaks` or `trufflehog` to catch credentials, keys, and tokens before they reach the remote.
+- [ ] **GitHub secret scanning** — Enable GitHub's built-in secret scanning (free for public repos) with push protection.
+- [ ] **Steering file content linter** — CI step or pre-commit hook that rejects patterns in `.kiro/steering/` matching AWS account IDs (`\d{12}`), access keys (`AKIA*`), ARNs, or real IP/CIDR ranges.
+- [ ] **Sensitive pattern guardrails** — Define a `.secret-patterns` file with regexes; CI fails if any tracked file matches. Prevents accidental disclosure of infra details as the project evolves.
+
+---
+
 ## Non-Goals (Explicitly Out of Scope)
 
 - **High availability / load balancing** — This is a disposable single-node proxy, not a production proxy fleet.
