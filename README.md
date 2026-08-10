@@ -36,6 +36,11 @@ module "proxy" {
 | `instance_id` | Instance ID |
 | `proxy_url` | Full proxy URL (`http://<ip>:<port>`) |
 
+## Examples
+
+- [`examples/simple`](examples/simple) — All defaults, caller IP auto-detected.
+- [`examples/restricted`](examples/restricted) — Explicit CIDRs, on-demand instance, custom port.
+
 ## Design
 
 - AL2023 arm64 AMI via SSM parameter (always latest)
