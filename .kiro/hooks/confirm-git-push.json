@@ -1,0 +1,15 @@
+{
+  "version": "v1",
+  "hooks": [
+    {
+      "name": "Confirm before git push",
+      "trigger": "PreToolUse",
+      "description": "Prompts for user confirmation before any git push command is executed.",
+      "matcher": "execute_bash",
+      "action": {
+        "type": "command",
+        "command": "stdin=$(cat); if echo \"$stdin\" | grep -q '\"command\"' && echo \"$stdin\" | grep -q 'git push'; then echo '{\"hookSpecificOutput\":{\"permissionDecision\":\"ask\",\"permissionDecisionReason\":\"About to push to remote. Please confirm.\"}}'; fi; exit 0"
+      }
+    }
+  ]
+}

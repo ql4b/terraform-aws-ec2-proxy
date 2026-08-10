@@ -1,5 +1,45 @@
 # Commit Conventions & Versioning
 
+## Branch & PR Workflow
+
+**Never push directly to `main`.** All changes reach `main` through pull requests.
+
+### Process
+
+1. **Create a feature branch** from `main`:
+   ```
+   git checkout -b feat/my-feature    # or fix/, docs/, ci/, etc.
+   ```
+2. **Commit locally** following Conventional Commits (see below).
+3. **Push the branch** and open a PR against `main`:
+   ```
+   git push -u origin feat/my-feature
+   gh pr create --base main
+   ```
+4. **CI validates** the PR (fmt, validate, tflint).
+5. **Merge** (squash or merge commit) — semantic-release then handles tagging.
+
+### Branch Naming
+
+Use the commit type as the branch prefix:
+
+```
+feat/ttl-hours
+fix/sg-egress-ipv6
+docs/architecture-diagram
+ci/add-checkov
+refactor/split-locals
+```
+
+### Rules
+
+- Direct pushes to `main` are **prohibited** — even for single-line fixes.
+- Force-pushing to `main` is **never allowed**.
+- Feature branches are deleted after merge.
+- Keep PRs focused: one logical change per PR.
+
+---
+
 ## Conventional Commits
 
 All commits on `main` **must** follow the [Conventional Commits v1.0.0](https://www.conventionalcommits.org/en/v1.0.0/) specification.
@@ -98,7 +138,7 @@ Do **not** create tags manually. All tagging is handled by `semantic-release` to
 
 ## Definition of Done
 
-Before committing a `feat:` or `fix:` that changes module behavior:
+Before opening a PR with a `feat:` or `fix:` that changes module behavior:
 
 - [ ] `CURRENT_STATE.md` reflects the new capability, removed limitation, or state change
 - [ ] `ENHANCEMENTS.md` item checked off (if the work completes a backlog item)
