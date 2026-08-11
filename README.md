@@ -224,6 +224,7 @@ Approximate cost for `t4g.nano` spot in `us-east-1`: **~$0.0016/hour** ($1.15/mo
 | <a name="output_proxy_url"></a> [proxy\_url](#output\_proxy\_url) | Full proxy URL ready for HTTP\_PROXY usage (includes credentials if auth is enabled) |
 | <a name="output_public_ip"></a> [public\_ip](#output\_public\_ip) | Public IP address of the proxy instance |
 | <a name="output_region"></a> [region](#output\_region) | AWS region the proxy is deployed in |
+| <a name="output_ttl_hours"></a> [ttl\_hours](#output\_ttl\_hours) | Hours after launch before the instance self-terminates, or null if auto-termination is disabled. |
 <!-- END_TF_DOCS -->
 
 ## License
