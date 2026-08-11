@@ -21,6 +21,7 @@ Prioritized backlog of improvements, grouped by theme.
 - [ ] **Squid ACLs for destination domains** — Optional allowlist/denylist to prevent the proxy from being used as an open relay.
 - [x] **IMDSv2 enforcement** — Set `metadata_options { http_tokens = "required" }` on the instance.
 - [x] **Encrypted root volume** — Add `root_block_device { encrypted = true }` for compliance.
+- [ ] **SSM port forwarding mode** — Output a ready-to-use `aws ssm start-session` port-forwarding command. In this mode the proxy listens on localhost only (no public ingress rule needed), and the SSM session encrypts the tunnel. Eliminates the need for CIDR management, IP auto-detection, or basic auth. Ideal for personal use by the account owner.
 
 ---
 

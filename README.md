@@ -2,12 +2,22 @@
 
 Disposable EC2-based HTTP proxy for IP diversification. Deploy a Squid forward proxy with a fresh public IP on every `terraform apply` cycle.
 
+This module is designed for **personal, single-user use by someone who owns or controls the AWS account**. It is not a shared proxy service, a production proxy fleet, or a VPN. You deploy it, use it, and destroy it — or let it self-terminate.
+
 ## Use Cases
 
 - Rotate source IPs for web scraping or API testing
 - Validate geo-restrictions or firewall rules from a cloud IP
 - Avoid rate limits by cycling proxy instances
 - One-command throwaway proxy with zero residual cost
+
+## Not For
+
+- Shared or multi-tenant proxy access
+- Long-running production infrastructure
+- High-availability or load-balanced proxy fleets
+- VPN or tunnel replacement (use WireGuard, OpenVPN, or AWS Client VPN)
+- Anonymity or privacy (the instance runs in your account, tied to your identity)
 
 ## Prerequisites
 
