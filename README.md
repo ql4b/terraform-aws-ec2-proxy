@@ -18,6 +18,7 @@ This module is designed for **personal, single-user use by someone who owns or c
 - High-availability or load-balanced proxy fleets
 - VPN or tunnel replacement (use WireGuard, OpenVPN, or AWS Client VPN)
 - Anonymity or privacy (the instance runs in your account, tied to your identity)
+- Appearing as residential traffic (requests originate from AWS IP ranges, which are publicly known and often classified as datacenter/cloud by target services)
 
 ## Prerequisites
 
