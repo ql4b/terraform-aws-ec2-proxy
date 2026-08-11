@@ -33,3 +33,8 @@ output "region" {
   description = "AWS region the proxy is deployed in"
   value       = data.aws_region.current.region
 }
+
+output "ttl_hours" {
+  description = "Hours after launch before the instance self-terminates, or null if auto-termination is disabled."
+  value       = var.ttl_hours
+}
