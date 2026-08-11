@@ -50,6 +50,9 @@ jobs:
           tflint --init
           tflint
 
+      - name: Run Unit Tests
+        run: terraform test -filter=tests/unit.tftest.hcl
+
       - name: Run Checkov
         uses: bridgecrewio/checkov-action@v12
         with:
