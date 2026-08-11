@@ -125,9 +125,62 @@ module "proxy" {
 - **Optional auth:** Set `proxy_username` and `proxy_password` to require credentials
 - **IMDSv2:** Instance metadata requires session tokens (prevents SSRF attacks)
 - **Encrypted storage:** Root EBS volume is encrypted at rest
+- **Unencrypted proxy connection:** The proxy listens on plain HTTP. Traffic between your machine and the proxy (including basic auth credentials if enabled) is not encrypted in transit. HTTPS destinations remain encrypted end-to-end via the CONNECT method — Squid tunnels TLS without terminating it. This is acceptable for disposable, short-lived proxies used from trusted networks. Do not use basic auth over untrusted networks without an additional transport layer (e.g. SSH tunnel, WireGuard).
 
 > **Note:** When using `allowed_cidrs = []` (default), the module calls `checkip.amazonaws.com`
 > at plan time to detect your IP. If you're behind a VPN or NAT that changes IPs, set explicit CIDRs.
+
+## Client Configuration
+
+The proxy URL is plain HTTP (`http://<ip>:8888`). Most clients handle HTTPS destinations transparently via the CONNECT method — no certificate issues, no SSL errors.
+
+### curl
+
+```bash
+# Export and use everywhere
+export HTTP_PROXY=http://<ip>:8888
+export HTTPS_PROXY=http://<ip>:8888
+curl https://httpbin.org/ip
+
+# Or per-request
+curl -x http://<ip>:8888 https://httpbin.org/ip
+```
+
+### Chrome / Chromium (dedicated instance)
+
+```bash
+# Launch a separate browser instance through the proxy
+chrome-canary --proxy-server=http://<ip>:8888
+```
+
+### Shell wrapper
+
+For frequent use, a wrapper script avoids managing env vars manually:
+
+```bash
+# Get proxy URL from Terraform output
+PROXY_URL=$(terraform output -raw proxy_url)
+
+# Export for all tools in this shell
+export HTTP_PROXY="$PROXY_URL"
+export HTTPS_PROXY="$PROXY_URL"
+export http_proxy="$PROXY_URL"
+export https_proxy="$PROXY_URL"
+```
+
+A helper function makes this available from anywhere:
+
+```bash
+# In .zshrc or .bashrc
+proxy_env() {
+  cd /path/to/your/proxy/infra
+  eval "$(terraform output -raw proxy_url | xargs -I{} echo \
+    "export HTTP_PROXY={} HTTPS_PROXY={} http_proxy={} https_proxy={}")"
+  cd "$OLDPWD"
+}
+```
+
+Then: `proxy_env` to activate, `unset HTTP_PROXY HTTPS_PROXY http_proxy https_proxy` to deactivate.
 
 ## Cost
 
