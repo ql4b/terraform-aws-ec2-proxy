@@ -6,8 +6,7 @@ provider "aws" {
 }
 
 module "proxy" {
-  source  = "ql4b/ec2-proxy/aws"
-  version = "~> 2.4"
+  source = "../../"
 
   namespace = "myorg"
   name      = "proxy"
