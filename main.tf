@@ -121,6 +121,8 @@ EOF
 }
 
 resource "aws_spot_instance_request" "proxy" {
+  #checkov:skip=CKV_AWS_126:Detailed monitoring adds cost; unnecessary for a disposable proxy
+  #checkov:skip=CKV_AWS_135:All t4g (Nitro) instances are EBS-optimized by default
   count = var.spot ? 1 : 0
 
   ami                                  = data.aws_ssm_parameter.ami.value
@@ -155,6 +157,8 @@ resource "aws_ec2_tag" "proxy" {
 }
 
 resource "aws_instance" "proxy" {
+  #checkov:skip=CKV_AWS_126:Detailed monitoring adds cost; unnecessary for a disposable proxy
+  #checkov:skip=CKV_AWS_135:All t4g (Nitro) instances are EBS-optimized by default
   count = var.spot ? 0 : 1
 
   ami                                  = data.aws_ssm_parameter.ami.value
