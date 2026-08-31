@@ -346,3 +346,79 @@ run "egress_allows_all" {
     error_message = "Egress should allow all protocols"
   }
 }
+
+
+# --- Custom VPC / subnet ---
+
+run "custom_vpc_skips_default_vpc_lookup" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+    vpc_id    = "vpc-custom123"
+  }
+
+  assert {
+    condition     = length(data.aws_vpc.default) == 0
+    error_message = "Should not look up the default VPC when vpc_id is provided"
+  }
+
+  assert {
+    condition     = aws_security_group.proxy.vpc_id == "vpc-custom123"
+    error_message = "Security group should use the provided vpc_id"
+  }
+}
+
+run "custom_subnet_skips_subnet_lookup" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+    vpc_id    = "vpc-custom123"
+    subnet_id = "subnet-custom456"
+  }
+
+  assert {
+    condition     = length(data.aws_subnets.default) == 0
+    error_message = "Should not look up subnets when subnet_id is provided"
+  }
+
+  assert {
+    condition     = aws_spot_instance_request.proxy[0].subnet_id == "subnet-custom456"
+    error_message = "Spot instance should use the provided subnet_id"
+  }
+}
+
+run "custom_subnet_on_demand" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+    vpc_id    = "vpc-custom123"
+    subnet_id = "subnet-custom456"
+    spot      = false
+  }
+
+  assert {
+    condition     = aws_instance.proxy[0].subnet_id == "subnet-custom456"
+    error_message = "On-demand instance should use the provided subnet_id"
+  }
+}
+
+run "custom_vpc_without_subnet_still_looks_up_subnets" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+    vpc_id    = "vpc-custom123"
+  }
+
+  assert {
+    condition     = length(data.aws_subnets.default) == 1
+    error_message = "Should still look up subnets when only vpc_id is provided (no subnet_id)"
+  }
+}

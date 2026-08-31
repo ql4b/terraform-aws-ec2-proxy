@@ -3,14 +3,22 @@ data "aws_ssm_parameter" "ami" {
 }
 
 data "aws_vpc" "default" {
+  count   = var.vpc_id == null ? 1 : 0
   default = true
 }
 
 data "aws_subnets" "default" {
+  count = var.subnet_id == null ? 1 : 0
+
   filter {
     name   = "vpc-id"
-    values = [data.aws_vpc.default.id]
+    values = [local.vpc_id]
   }
+}
+
+locals {
+  vpc_id    = var.vpc_id != null ? var.vpc_id : data.aws_vpc.default[0].id
+  subnet_id = var.subnet_id != null ? var.subnet_id : data.aws_subnets.default[0].ids[0]
 }
 
 # get current region
@@ -29,7 +37,7 @@ locals {
 resource "aws_security_group" "proxy" {
   name        = module.this.id
   description = "Allow inbound proxy traffic and all outbound for Squid forward proxy"
-  vpc_id      = data.aws_vpc.default.id
+  vpc_id      = local.vpc_id
 
   ingress {
     description = "Proxy port from allowed CIDRs"
@@ -117,7 +125,8 @@ resource "aws_spot_instance_request" "proxy" {
 
   ami                                  = data.aws_ssm_parameter.ami.value
   instance_type                        = var.instance_type
-  subnet_id                            = data.aws_subnets.default.ids[0]
+  subnet_id                            = local.subnet_id
+  associate_public_ip_address          = true
   vpc_security_group_ids               = [aws_security_group.proxy.id]
   iam_instance_profile                 = aws_iam_instance_profile.proxy.name
   user_data                            = local.user_data
@@ -150,7 +159,8 @@ resource "aws_instance" "proxy" {
 
   ami                                  = data.aws_ssm_parameter.ami.value
   instance_type                        = var.instance_type
-  subnet_id                            = data.aws_subnets.default.ids[0]
+  subnet_id                            = local.subnet_id
+  associate_public_ip_address          = true
   vpc_security_group_ids               = [aws_security_group.proxy.id]
   iam_instance_profile                 = aws_iam_instance_profile.proxy.name
   user_data                            = local.user_data

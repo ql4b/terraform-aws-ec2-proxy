@@ -12,7 +12,7 @@ Disposable EC2-based HTTP proxy for IP diversification. Deploy a Squid forward p
 ## Prerequisites
 
 - Terraform >= 1.0
-- AWS account with a **default VPC** (present in all accounts unless manually deleted)
+- AWS account with a **default VPC** (present in all accounts unless manually deleted), or an existing VPC and public subnet
 - AWS credentials configured (`aws configure`, env vars, or IAM role)
 - No pre-existing infrastructure required
 
@@ -51,7 +51,7 @@ terraform destroy
 
 ```
 ┌─────────────────────────────────────────────────────┐
-│ Default VPC                                         │
+│ VPC (default or custom)                             │
 │                                                     │
 │  ┌──────────────────────────────────────┐           │
 │  │ EC2 (spot or on-demand)              │           │
@@ -77,6 +77,7 @@ terraform destroy
 |---------|---------|
 | **Spot instances** | Default `spot = true` for ~70% cost savings |
 | **ARM64 (Graviton)** | Best price-performance at t4g.nano |
+| **Custom VPC support** | Optional `vpc_id` and `subnet_id` — defaults to the region's default VPC |
 | **Auto-detected ingress** | When `allowed_cidrs` is empty, restricts to caller's IP/32 |
 | **Basic auth** | Optional `proxy_username` + `proxy_password` for Squid authentication |
 | **TTL auto-terminate** | `ttl_hours` triggers self-termination — no forgotten instances |
@@ -91,6 +92,7 @@ terraform destroy
 - [`examples/restricted`](examples/restricted) — Explicit CIDRs, on-demand instance, custom port
 - [`examples/authenticated`](examples/authenticated) — Proxy with HTTP basic auth
 - [`examples/ephemeral`](examples/ephemeral) — Auto-terminates after a TTL
+- [`examples/custom-vpc`](examples/custom-vpc) — Deploy into a specific VPC and subnet
 
 ### With Authentication
 
@@ -118,6 +120,24 @@ module "proxy" {
 }
 ```
 
+### Custom VPC (No Default VPC)
+
+```hcl
+module "proxy" {
+  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.0.0"
+
+  namespace = "myorg"
+  name      = "proxy"
+
+  vpc_id    = "vpc-abc123"
+  subnet_id = "subnet-def456"   # must be a public subnet
+}
+```
+
+> **Note:** The subnet must have a route to an internet gateway. The module
+> explicitly sets `associate_public_ip_address = true`, but the subnet still
+> needs outbound internet routing for the proxy to function.
+
 ## Security
 
 - **Network isolation:** Security group restricts inbound to only the specified CIDRs (or auto-detected caller IP)
@@ -139,7 +159,9 @@ Approximate cost for `t4g.nano` spot in `us-east-1`: **~$0.0016/hour** ($1.15/mo
 |----------|-----------|
 | Spot instance default | Acceptable for ephemeral workloads; ~70% savings |
 | ARM64 (Graviton) | Best price-performance for nano instances |
-| Default VPC | Zero pre-existing infra — works in any AWS account |
+| Default VPC fallback | Zero pre-existing infra — works in any AWS account out of the box |
+| Custom VPC support | Regions where the default VPC was deleted, or existing VPC topologies |
+| `associate_public_ip_address = true` | Guarantees a public IP regardless of subnet defaults — required for an internet-facing proxy |
 | No SSH / SSM only | Reduced attack surface; no key management |
 | Squid from AL2023 repos | Zero external dependencies |
 | Cloud Posse null-label | Consistent naming/tagging |
