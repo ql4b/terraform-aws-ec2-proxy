@@ -19,7 +19,7 @@ provider "aws" {
 }
 
 module "proxy" {
-  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v1.0.0"
+  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.4.0"
 
   namespace = "myorg"
   name      = "proxy"

@@ -20,7 +20,7 @@ Disposable EC2-based HTTP proxy for IP diversification. Deploy a Squid forward p
 
 ```hcl
 module "proxy" {
-  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.0.0"
+  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.4.0"
 
   namespace = "myorg"
   name      = "proxy"
@@ -44,7 +44,7 @@ curl http://httpbin.org/ip
 terraform destroy
 ```
 
-> **Tip:** Always pin to a specific release tag (e.g. `?ref=v2.0.0`). Browse
+> **Tip:** Always pin to a specific release tag (e.g. `?ref=v2.4.0`). Browse
 > available versions on the [Releases](https://github.com/ql4b/terraform-aws-ec2-proxy/releases) page.
 
 ## Architecture
@@ -98,7 +98,7 @@ terraform destroy
 
 ```hcl
 module "proxy" {
-  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.0.0"
+  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.4.0"
 
   namespace = "myorg"
   name      = "proxy"
@@ -112,7 +112,7 @@ module "proxy" {
 
 ```hcl
 module "proxy" {
-  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.0.0"
+  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.4.0"
 
   namespace = "myorg"
   name      = "proxy"
@@ -124,7 +124,7 @@ module "proxy" {
 
 ```hcl
 module "proxy" {
-  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.0.0"
+  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.4.0"
 
   namespace = "myorg"
   name      = "proxy"
