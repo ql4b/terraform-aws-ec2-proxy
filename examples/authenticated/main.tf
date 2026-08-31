@@ -17,7 +17,7 @@ variable "proxy_password" {
 }
 
 module "proxy" {
-  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v2.0.0"
+  source = "../../"
 
   namespace = "myorg"
   name      = "proxy"

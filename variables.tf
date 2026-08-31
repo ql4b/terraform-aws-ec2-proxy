@@ -1,3 +1,15 @@
+variable "vpc_id" {
+  description = "ID of the VPC to deploy into. When null (default), the module uses the region's default VPC."
+  type        = string
+  default     = null
+}
+
+variable "subnet_id" {
+  description = "ID of the subnet to launch the instance in. When null (default), the module picks the first subnet in the selected VPC. Must belong to the VPC specified by vpc_id (or the default VPC when vpc_id is null)."
+  type        = string
+  default     = null
+}
+
 variable "instance_type" {
   description = "EC2 instance type for the proxy."
   type        = string

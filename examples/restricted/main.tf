@@ -5,7 +5,7 @@ provider "aws" {
 }
 
 module "proxy" {
-  source = "github.com/ql4b/terraform-aws-ec2-proxy?ref=v1.0.0"
+  source = "../../"
 
   namespace = "myorg"
   stage     = "dev"
