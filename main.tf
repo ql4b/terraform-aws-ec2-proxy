@@ -126,7 +126,7 @@ resource "aws_spot_instance_request" "proxy" {
   ami                                  = data.aws_ssm_parameter.ami.value
   instance_type                        = var.instance_type
   subnet_id                            = local.subnet_id
-  associate_public_ip_address          = true
+  associate_public_ip_address          = true #checkov:skip=CKV_AWS_88:Public IP required — this is an internet-facing forward proxy
   vpc_security_group_ids               = [aws_security_group.proxy.id]
   iam_instance_profile                 = aws_iam_instance_profile.proxy.name
   user_data                            = local.user_data
@@ -160,7 +160,7 @@ resource "aws_instance" "proxy" {
   ami                                  = data.aws_ssm_parameter.ami.value
   instance_type                        = var.instance_type
   subnet_id                            = local.subnet_id
-  associate_public_ip_address          = true
+  associate_public_ip_address          = true #checkov:skip=CKV_AWS_88:Public IP required — this is an internet-facing forward proxy
   vpc_security_group_ids               = [aws_security_group.proxy.id]
   iam_instance_profile                 = aws_iam_instance_profile.proxy.name
   user_data                            = local.user_data
