@@ -190,6 +190,10 @@ aws ec2 describe-instances \
   --query 'Reservations[].Instances[].PublicIpAddress' --output text
 ```
 
+Instances also carry a `proxy:ttl-hours` tag when `ttl_hours` is set (its value
+is the configured hours; the tag is absent for an always-on proxy), so tooling
+can report the TTL live without reading Terraform state.
+
 ## Security
 
 - **Network isolation:** Security group restricts inbound to only the specified CIDRs (or auto-detected caller IP)
