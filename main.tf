@@ -121,10 +121,14 @@ EOF
   # created by THIS module deployment (see aws_lambda_function.scale_to_zero).
   managed_by_key = "proxy:managed-by"
 
+  # Surface the TTL on the instance so tooling can read it live (by tag) without
+  # consulting Terraform state. Only present when a TTL is actually configured.
+  ttl_tag = var.ttl_hours != null ? { "proxy:ttl-hours" = tostring(var.ttl_hours) } : {}
+
   instance_tags = merge(module.this.tags, {
     Name                   = module.this.id
     (local.managed_by_key) = module.this.id
-  })
+  }, local.ttl_tag)
 }
 
 resource "aws_launch_template" "proxy" {

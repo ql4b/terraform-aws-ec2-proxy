@@ -269,6 +269,35 @@ run "instances_carry_ownership_tag" {
   }
 }
 
+run "ttl_tag_present_with_ttl" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+    ttl_hours = 3
+  }
+
+  assert {
+    condition     = aws_launch_template.proxy.tag_specifications[0].tags["proxy:ttl-hours"] == "3"
+    error_message = "With ttl_hours set, instances should carry the proxy:ttl-hours tag"
+  }
+}
+
+run "ttl_tag_absent_without_ttl" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+  }
+
+  assert {
+    condition     = !contains(keys(aws_launch_template.proxy.tag_specifications[0].tags), "proxy:ttl-hours")
+    error_message = "Without ttl_hours, instances must NOT carry the proxy:ttl-hours tag"
+  }
+}
+
 # --- Security group ---
 
 run "custom_port_in_security_group" {

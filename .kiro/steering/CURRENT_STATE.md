@@ -19,7 +19,7 @@ Breaking redesign: the proxy is now managed by a single-instance **Auto Scaling 
 - **Caller IP auto-detection** — empty `allowed_cidrs` (default) → queries `checkip.amazonaws.com`, restricts ingress to caller's IP/32.
 - **Squid basic auth** — optional `proxy_username` + `proxy_password` via `basic_ncsa_auth`.
 - **IMDSv2 enforced**, **encrypted root volume**, **SSM access** (no SSH), privacy headers (`via off`, `forwarded_for delete`) — all on the launch template.
-- **Ownership tag** `proxy:managed-by = <module id>` on launched instances; the scale-to-zero Lambda gates on it (won't touch other deployments' instances) and resolves the target ASG from the auto-injected `aws:autoscaling:groupName` tag.
+- **Ownership tag** `proxy:managed-by = <module id>` on launched instances; the scale-to-zero Lambda gates on it (won't touch other deployments' instances) and resolves the target ASG from the auto-injected `aws:autoscaling:groupName` tag. When `ttl_hours` is set, instances also carry `proxy:ttl-hours = <N>` so tooling can report the TTL live by tag.
 - 22 unit tests pass (`terraform test`); Checkov clean (2 pre-existing findings in the CI skip list) in both modes.
 
 ## What Changed from v2 (breaking)
