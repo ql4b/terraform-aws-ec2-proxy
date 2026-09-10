@@ -199,6 +199,9 @@ resource "aws_ec2_tag" "proxy" {
 resource "aws_instance" "proxy" {
   #checkov:skip=CKV_AWS_126:Detailed monitoring adds cost; unnecessary for a disposable proxy
   #checkov:skip=CKV_AWS_135:All t4g (Nitro) instances are EBS-optimized by default
+  #checkov:skip=CKV_AWS_79:IMDSv2 is enforced on the launch template (http_tokens=required); Checkov does not traverse the launch_template reference
+  #checkov:skip=CKV_AWS_8:Root volume encryption is set on the launch template (block_device_mappings.ebs.encrypted=true); Checkov does not traverse the launch_template reference
+  #checkov:skip=CKV2_AWS_41:IAM instance profile is attached via the launch template; Checkov does not traverse the launch_template reference
   count = !var.use_asg && !var.spot ? 1 : 0
 
   subnet_id = local.subnet_id

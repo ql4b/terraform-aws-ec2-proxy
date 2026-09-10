@@ -112,6 +112,7 @@ resource "aws_iam_role_policy" "scale_to_zero" {
 }
 
 resource "aws_lambda_function" "scale_to_zero" {
+  #checkov:skip=CKV_AWS_50:X-Ray tracing unnecessary for a trivial single-purpose scale-to-zero function
   #checkov:skip=CKV_AWS_115:Reserved concurrency unnecessary for a disposable proxy
   #checkov:skip=CKV_AWS_116:No DLQ; a missed scale-down self-heals on the next cycle
   #checkov:skip=CKV_AWS_117:VPC config unnecessary; only calls public AWS APIs
