@@ -386,8 +386,8 @@ run "custom_subnet_skips_subnet_lookup" {
   }
 
   assert {
-    condition     = aws_spot_instance_request.proxy[0].subnet_id == "subnet-custom456"
-    error_message = "Spot instance should use the provided subnet_id"
+    condition     = aws_launch_template.proxy.network_interfaces[0].subnet_id == "subnet-custom456"
+    error_message = "Launch template network interface should use the provided subnet_id"
   }
 }
 
@@ -403,8 +403,8 @@ run "custom_subnet_on_demand" {
   }
 
   assert {
-    condition     = aws_instance.proxy[0].subnet_id == "subnet-custom456"
-    error_message = "On-demand instance should use the provided subnet_id"
+    condition     = length(aws_instance.proxy[0].launch_template) == 1
+    error_message = "On-demand instance should be wired to the launch template (subnet comes from the LT network interface, not instance-level)"
   }
 }
 

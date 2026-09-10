@@ -145,6 +145,10 @@ resource "aws_launch_template" "proxy" {
   network_interfaces {
     associate_public_ip_address = true #checkov:skip=CKV_AWS_88:Public IP required — this is an internet-facing forward proxy
     security_groups             = [aws_security_group.proxy.id]
+    # Subnet must live in the network interface (not at instance level) — EC2
+    # rejects a network_interfaces block plus an instance-level subnet_id. The
+    # ASG ignores this and uses vpc_zone_identifier instead (per AWS docs).
+    subnet_id = local.subnet_id
   }
 
   metadata_options {
@@ -178,8 +182,6 @@ resource "aws_spot_instance_request" "proxy" {
   #checkov:skip=CKV_AWS_135:All t4g (Nitro) instances are EBS-optimized by default
   count = !var.use_asg && var.spot ? 1 : 0
 
-  subnet_id = local.subnet_id
-
   launch_template {
     id      = aws_launch_template.proxy.id
     version = aws_launch_template.proxy.latest_version
@@ -205,8 +207,6 @@ resource "aws_instance" "proxy" {
   #checkov:skip=CKV_AWS_8:Root volume encryption is set on the launch template (block_device_mappings.ebs.encrypted=true); Checkov does not traverse the launch_template reference
   #checkov:skip=CKV2_AWS_41:IAM instance profile is attached via the launch template; Checkov does not traverse the launch_template reference
   count = !var.use_asg && !var.spot ? 1 : 0
-
-  subnet_id = local.subnet_id
 
   launch_template {
     id      = aws_launch_template.proxy.id
