@@ -18,23 +18,26 @@ The design intentionally optimizes for **low cost and disposability** over durab
 
 ```
 ┌────────────────────────────────────────────────────┐
-│ Default VPC                                        │
+│ VPC (default or custom)                            │
 │                                                    │
-│  ┌─────────────────────────────────────┐           │
-│  │ EC2 (spot or on-demand)             │           │
-│  │ AL2023 arm64 · t4g.nano             │           │
-│  │                                     │           │
-│  │  ┌───────────┐                      │           │
-│  │  │   Squid   │ ← port 8888 (HTTP)   │           │
-│  │  └───────────┘                      │           │
-│  │                                     │           │
-│  │  IAM Role: AmazonSSMManagedInstance │           │
-│  │  (no SSH key, no inbound port 22)   │           │
-│  └─────────────────────────────────────┘           │
+│  Auto Scaling Group (min 0 · max 1 · desired 1)    │
+│  └── Launch Template (AL2023 arm64 · t4g.nano)     │
+│        ┌─────────────────────────────────────┐     │
+│        │ EC2 instance (on-demand)            │     │
+│        │  ┌───────────┐                      │     │
+│        │  │   Squid   │ ← port 8888 (HTTP)   │     │
+│        │  └───────────┘                      │     │
+│        │  IAM Role: AmazonSSMManagedInstance │     │
+│        │  (no SSH key, no inbound port 22)   │     │
+│        └─────────────────────────────────────┘     │
 │                                                    │
 │  Security Group:                                   │
-│    ingress: var.allowed_cidrs → proxy_port/tcp     │
+│    ingress: allowed_cidrs (or caller IP) → port    │
 │    egress:  0.0.0.0/0 → all                        │
+│                                                    │
+│  When ttl_hours set:                               │
+│    "shutting-down" event → EventBridge → Lambda    │
+│    → ASG desired = 0 (no relaunch, no drift)       │
 └────────────────────────────────────────────────────┘
 ```
 
@@ -42,7 +45,10 @@ The design intentionally optimizes for **low cost and disposability** over durab
 
 | Decision | Rationale |
 |----------|-----------|
-| **Spot instance default** | ≈70% cost savings; acceptable for ephemeral workloads |
+| **ASG (single instance)** | Manages a stable capacity contract, not a self-deleting instance — eliminates `ttl_hours` state drift |
+| **On-demand only** | Spot was never interruption-safe; negligible savings at t4g.nano, and TTL already gives zero idle cost |
+| **`ignore_changes = [desired_capacity]`** | Runtime capacity is driven out-of-band (TTL Lambda, wrapper) — Terraform must not fight it |
+| **Lambda/EventBridge gated on `ttl_hours`** | Always-on proxies need no scale-to-zero machinery — minimal footprint |
 | **ARM64 (Graviton)** | Best price-performance for t4g.nano |
 | **Default VPC** | Zero pre-existing infra required — works in any AWS account |
 | **No SSH / SSM only** | Reduced attack surface; no key management overhead |
@@ -52,18 +58,21 @@ The design intentionally optimizes for **low cost and disposability** over durab
 
 ## Module Interface (Summary)
 
-**Inputs:** `instance_type`, `proxy_port`, `allowed_cidrs`, `spot`, `ttl_hours` + all null-label context vars.
+**Inputs:** `instance_type`, `proxy_port`, `allowed_cidrs`, `ttl_hours`, `proxy_username`, `proxy_password`, `vpc_id`, `subnet_id` + all null-label context vars.
 
-**Outputs:** `public_ip`, `instance_id`, `proxy_url`, `instance_type`, `is_spot`, `region`.
+**Outputs:** `asg_name`, `launch_template_id`, `instance_type`, `region`, `ttl_hours`. (The running instance's IP/ID are intentionally not outputs — it is dynamic; resolve it live by the `proxy:managed-by` tag.)
 
 ## Repository Layout
 
 ```
 .
-├── main.tf          # All resources (data sources, SG, IAM, EC2/Spot, user_data)
-├── variables.tf     # 4 module-specific variables
-├── outputs.tf       # 6 outputs
-├── versions.tf      # Terraform ≥1.0, AWS provider ≥5.0
+├── main.tf          # Data sources, SG, IAM, launch template, user_data
+├── asg.tf           # ASG + (ttl_hours-gated) scale-to-zero Lambda/EventBridge
+├── lambda/scale_to_zero.py  # Scale-to-zero Lambda source
+├── variables.tf     # Module-specific variables
+├── outputs.tf       # Module outputs
+├── versions.tf      # Terraform ≥1.0, AWS provider ≥5.0, http, archive
 ├── context.tf       # Cloud Posse null-label v0.25.0 integration
+├── tests/unit.tftest.hcl  # Plan-time unit tests
 └── README.md        # Usage, inputs, outputs, design notes
 ```

@@ -26,14 +26,8 @@ module "proxy" {
 
   vpc_id    = var.vpc_id
   subnet_id = var.subnet_id
-  spot      = false
 }
 
-output "proxy_url" {
-  value     = module.proxy.proxy_url
-  sensitive = true
-}
-
-output "public_ip" {
-  value = module.proxy.public_ip
+output "asg_name" {
+  value = module.proxy.asg_name
 }

@@ -26,17 +26,17 @@ Prioritized backlog of improvements, grouped by theme.
 
 ## P2 — Reliability & Lifecycle
 
-- [x] **TTL / auto-terminate** — `ttl_hours` variable triggers `shutdown -h` in user_data + `instance_initiated_shutdown_behavior = "terminate"`. No extra infra required.
+- [x] **TTL / auto-terminate** — `ttl_hours` variable triggers `shutdown -h` in user_data + `instance_initiated_shutdown_behavior = "terminate"`. In v3, TTL also drives the ASG to zero (via the scale-to-zero Lambda) so no replacement launches — drift-free.
 - [ ] **Health check output** — A `null_resource` with a provisioner or an output script that curls through the proxy to confirm it's live.
-- [ ] **Spot interruption handling** — Use a Spot Fleet or capacity-optimized allocation to reduce interruption risk, or emit an SNS notification on interruption.
+- [x] **Spot interruption handling** — *Resolved by removal.* Spot was never interruption-safe and was dropped in v3 (on-demand only); the negligible savings at t4g.nano didn't justify completing it. The ASG would make spot viable later (reclaim rides the same `shutting-down` → scale-to-zero path) if reintroduced.
 - [ ] **Configurable AZ** — Allow passing a specific subnet ID or AZ preference instead of always taking `ids[0]`.
 
 ---
 
 ## P3 — Flexibility & Multi-Proxy
 
-- [~] **Launch template extraction** *(experimental, `feat/autoscaling-group`)* — Shared `aws_launch_template.proxy` captures the instance config from module inputs; both the standalone spot/on-demand instances and the ASG consume it. Foundation for multi-instance provisioning.
-- [~] **ASG-managed proxy** *(experimental, `feat/autoscaling-group`)* — Optional `use_asg` flag switches provisioning to a single-node Auto Scaling Group. Solves the `ttl_hours` state-drift problem: the instance self-terminates (`shutdown -h`), an EventBridge rule on the `shutting-down` event triggers a Lambda that sets the ASG `desired_capacity` to 0, and Terraform `ignore_changes` on `desired_capacity` keeps the out-of-band scaling out of state. A wrapper scales back to 1 to hand out a fresh proxy/IP. Not yet apply-tested; spot-in-ASG not yet wired.
+- [x] **Launch template extraction** — Shared `aws_launch_template.proxy` captures the instance config from module inputs; the ASG consumes it. (Shipped in the v3 ASG redesign.)
+- [x] **ASG-managed proxy** *(v3.0.0, breaking)* — The proxy is a single-node Auto Scaling Group. Solves the `ttl_hours` state-drift problem: the instance self-terminates (`shutdown -h`), an EventBridge rule on the `shutting-down` event triggers a Lambda that sets the ASG `desired_capacity` to 0, and Terraform `ignore_changes` on `desired_capacity` keeps the out-of-band scaling out of state. Validated live (terminate→scale-to-zero + scale-up, zero drift). Lambda/EventBridge are gated on `ttl_hours != null` (always-on mode needs neither). Spot and `use_asg` removed.
 - [ ] **`count` or `for_each` support** — Deploy N proxies in parallel for higher throughput or wider IP diversity.
 - [ ] **Multiple regions** — Accept a list of regions and deploy one proxy per region (requires provider aliases or a wrapper module).
 - [ ] **VPC selection** — Optional `vpc_id` and `subnet_id` inputs; fall back to default VPC only when unset.

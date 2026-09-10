@@ -1,4 +1,4 @@
-# Restricted example — explicit CIDRs, on-demand instance, custom port.
+# Restricted example — explicit CIDRs and a custom port.
 
 provider "aws" {
   region = "eu-west-1"
@@ -14,9 +14,6 @@ module "proxy" {
   # Only allow traffic from the office and VPN
   allowed_cidrs = ["203.0.113.0/24", "198.51.100.10/32"]
 
-  # Use on-demand for longer-running workloads
-  spot = false
-
   # Custom port
   proxy_port = 3128
 
@@ -24,14 +21,10 @@ module "proxy" {
   instance_type = "t4g.micro"
 }
 
-output "proxy_url" {
-  value = module.proxy.proxy_url
+output "asg_name" {
+  value = module.proxy.asg_name
 }
 
-output "instance_id" {
-  value = module.proxy.instance_id
-}
-
-output "is_spot" {
-  value = module.proxy.is_spot
+output "launch_template_id" {
+  value = module.proxy.launch_template_id
 }

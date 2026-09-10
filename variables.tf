@@ -28,14 +28,8 @@ variable "allowed_cidrs" {
   default     = []
 }
 
-variable "spot" {
-  description = "Use a spot instance for cost savings. Set to false for on-demand."
-  type        = bool
-  default     = true
-}
-
 variable "ttl_hours" {
-  description = "Hours after launch before the instance self-terminates. Set to null (default) to disable auto-termination."
+  description = "Hours after launch before the proxy instance self-terminates. When set, the module also creates an EventBridge rule + Lambda that scale the ASG to 0 on shutdown (so no replacement is launched), and Terraform ignores the resulting desired-capacity change. Set to null (default) for an always-on proxy with no auto-termination and no Lambda/EventBridge."
   type        = number
   default     = null
 }
@@ -52,11 +46,4 @@ variable "proxy_password" {
   type        = string
   default     = null
   sensitive   = true
-}
-
-
-variable "use_asg" {
-  description = "Experimental: manage the proxy via an Auto Scaling Group instead of a standalone instance. When true, the module creates an ASG (backed by the shared launch template) plus an EventBridge rule and Lambda that set the ASG's desired capacity to 0 when a proxy instance begins shutting down (e.g. via ttl_hours). This keeps Terraform state free of drift while the instance count is managed out-of-band. Mutually exclusive with the standalone aws_instance/aws_spot_instance_request path."
-  type        = bool
-  default     = false
 }

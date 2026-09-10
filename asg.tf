@@ -1,23 +1,26 @@
 # ---------------------------------------------------------------------------
-# Experimental: Auto Scaling Group proxy management (var.use_asg = true)
+# Auto Scaling Group proxy management
 #
-# Instead of a standalone instance, the proxy runs as a single-instance ASG
-# backed by the shared aws_launch_template.proxy. The ttl_hours "shutdown -h"
-# still terminates the instance; an EventBridge rule + Lambda then set the
-# ASG's desired capacity to 0 so no replacement is launched. Terraform ignores
-# desired_capacity, so the out-of-band scaling never shows up as drift.
+# The proxy runs as a single-instance ASG backed by aws_launch_template.proxy.
+# Terraform manages the ASG contract (capacity 0..1 from the template), NOT any
+# specific instance — desired_capacity is always ignored, so the instance can
+# churn underneath (TTL shutdown, scale-to-zero, on-demand scale-up) without
+# ever showing up as state drift. A wrapper scales the ASG to 1 to hand out a
+# fresh proxy (new public IP) and to 0 to stop cost.
 #
-# A wrapper (out of scope for this module) scales the ASG back to 1 to hand
-# out a fresh proxy (and a fresh public IP) on demand.
+# When ttl_hours is set, the instance self-terminates after N hours; an
+# EventBridge rule + Lambda then set desired capacity to 0 so no replacement is
+# launched. Those two resources exist ONLY when ttl_hours != null — a plain
+# always-on proxy (no TTL) needs no Lambda/EventBridge at all.
 # ---------------------------------------------------------------------------
 
 locals {
-  asg_enabled = var.use_asg
+  # The scale-to-zero automation (Lambda + EventBridge) is only needed when the
+  # instance can terminate itself, i.e. when a TTL is configured.
+  scale_to_zero_enabled = var.ttl_hours != null
 }
 
 resource "aws_autoscaling_group" "proxy" {
-  count = local.asg_enabled ? 1 : 0
-
   name                = module.this.id
   vpc_zone_identifier = [local.subnet_id]
 
@@ -65,14 +68,14 @@ resource "aws_autoscaling_group" "proxy" {
 # --- Scale-to-zero: EventBridge rule + Lambda -------------------------------
 
 data "archive_file" "scale_to_zero" {
-  count       = local.asg_enabled ? 1 : 0
+  count       = local.scale_to_zero_enabled ? 1 : 0
   type        = "zip"
   source_file = "${path.module}/lambda/scale_to_zero.py"
   output_path = "${path.module}/lambda/scale_to_zero.zip"
 }
 
 resource "aws_iam_role" "scale_to_zero" {
-  count = local.asg_enabled ? 1 : 0
+  count = local.scale_to_zero_enabled ? 1 : 0
   name  = "${module.this.id}-scale-to-zero"
 
   assume_role_policy = jsonencode({
@@ -88,7 +91,7 @@ resource "aws_iam_role" "scale_to_zero" {
 }
 
 resource "aws_iam_role_policy" "scale_to_zero" {
-  count = local.asg_enabled ? 1 : 0
+  count = local.scale_to_zero_enabled ? 1 : 0
   name  = "${module.this.id}-scale-to-zero"
   role  = aws_iam_role.scale_to_zero[0].id
 
@@ -106,7 +109,7 @@ resource "aws_iam_role_policy" "scale_to_zero" {
         Sid      = "ScaleTargetAsg"
         Effect   = "Allow"
         Action   = ["autoscaling:SetDesiredCapacity"]
-        Resource = aws_autoscaling_group.proxy[0].arn
+        Resource = aws_autoscaling_group.proxy.arn
       },
       {
         Sid    = "Logs"
@@ -128,8 +131,8 @@ resource "aws_lambda_function" "scale_to_zero" {
   #checkov:skip=CKV_AWS_116:No DLQ; a missed scale-down self-heals on the next cycle
   #checkov:skip=CKV_AWS_117:VPC config unnecessary; only calls public AWS APIs
   #checkov:skip=CKV_AWS_173:No sensitive env vars; MANAGED_BY is a non-secret tag value
-  #checkov:skip=CKV_AWS_272:Code signing unnecessary for an inline experimental function
-  count = local.asg_enabled ? 1 : 0
+  #checkov:skip=CKV_AWS_272:Code signing unnecessary for this trivial single-purpose function
+  count = local.scale_to_zero_enabled ? 1 : 0
 
   function_name = "${module.this.id}-scale-to-zero"
   role          = aws_iam_role.scale_to_zero[0].arn
@@ -150,7 +153,7 @@ resource "aws_lambda_function" "scale_to_zero" {
 }
 
 resource "aws_cloudwatch_event_rule" "instance_shutting_down" {
-  count       = local.asg_enabled ? 1 : 0
+  count       = local.scale_to_zero_enabled ? 1 : 0
   name        = "${module.this.id}-instance-shutting-down"
   description = "Fires when an EC2 instance begins shutting down; scale-to-zero Lambda filters by tag."
 
@@ -166,14 +169,14 @@ resource "aws_cloudwatch_event_rule" "instance_shutting_down" {
 }
 
 resource "aws_cloudwatch_event_target" "scale_to_zero" {
-  count     = local.asg_enabled ? 1 : 0
+  count     = local.scale_to_zero_enabled ? 1 : 0
   rule      = aws_cloudwatch_event_rule.instance_shutting_down[0].name
   target_id = "scale-to-zero"
   arn       = aws_lambda_function.scale_to_zero[0].arn
 }
 
 resource "aws_lambda_permission" "allow_eventbridge" {
-  count         = local.asg_enabled ? 1 : 0
+  count         = local.scale_to_zero_enabled ? 1 : 0
   statement_id  = "AllowExecutionFromEventBridge"
   action        = "lambda:InvokeFunction"
   function_name = aws_lambda_function.scale_to_zero[0].function_name
