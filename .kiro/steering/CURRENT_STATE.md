@@ -25,6 +25,11 @@ The module is **feature-complete** and being prepared for public repository visi
 - **Lock file checked in** — `.terraform.lock.hcl` tracked with hashes for `darwin_arm64` and `linux_amd64`
 - **README polished** — Quick-start, architecture diagram, prerequisites, security section, cost estimate, and full input/output documentation
 
+## Experimental (branch `feat/autoscaling-group`, not yet merged)
+
+- **Shared launch template** — `aws_launch_template.proxy` holds the instance config; standalone instances and the ASG both consume it.
+- **ASG-managed proxy (`use_asg`, default false)** — Single-node Auto Scaling Group as an alternative to the standalone instance, designed to eliminate `ttl_hours` state drift. Flow: `shutdown -h` self-terminates the instance → EventBridge rule matches the `shutting-down` state event → Lambda gates on the `proxy:managed-by` tag and sets that ASG's `desired_capacity` to 0 → Terraform `ignore_changes = [desired_capacity]` keeps it out of state. A wrapper scales back to 1 on demand for a fresh proxy/IP. Static validation passes (`fmt`/`validate`/`init`); **not yet apply-tested against live AWS**. Spot-in-ASG is not wired (ASG launches on-demand regardless of `var.spot`). Adds the `hashicorp/archive` provider (Lambda packaging).
+
 ## What's Missing
 
 | Category | Gap |
@@ -50,6 +55,7 @@ The module is **feature-complete** and being prepared for public repository visi
 | AWS Provider | >= 5.0 (locked: 6.58.0) | Uses modern resource attributes |
 | cloudposse/label/null | 0.25.0 | Naming/tagging framework |
 | HTTP Provider | >= 3.0 (locked: 3.6.0) | Used for caller IP auto-detection |
+| Archive Provider | >= 2.0 (locked: 2.8.0) | Packages the scale-to-zero Lambda (experimental `use_asg` path) |
 | Amazon Linux 2023 | latest (SSM) | AMI resolved at apply-time |
 | Squid | AL2023 repo default | Installed via user_data |
 | httpd-tools | AL2023 repo default | Installed when auth is enabled (provides `htpasswd`) |
@@ -69,6 +75,8 @@ The module is **feature-complete** and being prepared for public repository visi
 ├── .releaserc.yml                  # semantic-release config
 ├── .terraform.lock.hcl            # Provider lock file (tracked)
 ├── main.tf                         # All resources
+├── asg.tf                          # Experimental ASG + scale-to-zero (use_asg)
+├── lambda/scale_to_zero.py         # Scale-to-zero Lambda source
 ├── variables.tf                    # Module inputs
 ├── outputs.tf                      # Module outputs
 ├── versions.tf                     # Provider constraints

@@ -35,6 +35,8 @@ Prioritized backlog of improvements, grouped by theme.
 
 ## P3 — Flexibility & Multi-Proxy
 
+- [~] **Launch template extraction** *(experimental, `feat/autoscaling-group`)* — Shared `aws_launch_template.proxy` captures the instance config from module inputs; both the standalone spot/on-demand instances and the ASG consume it. Foundation for multi-instance provisioning.
+- [~] **ASG-managed proxy** *(experimental, `feat/autoscaling-group`)* — Optional `use_asg` flag switches provisioning to a single-node Auto Scaling Group. Solves the `ttl_hours` state-drift problem: the instance self-terminates (`shutdown -h`), an EventBridge rule on the `shutting-down` event triggers a Lambda that sets the ASG `desired_capacity` to 0, and Terraform `ignore_changes` on `desired_capacity` keeps the out-of-band scaling out of state. A wrapper scales back to 1 to hand out a fresh proxy/IP. Not yet apply-tested; spot-in-ASG not yet wired.
 - [ ] **`count` or `for_each` support** — Deploy N proxies in parallel for higher throughput or wider IP diversity.
 - [ ] **Multiple regions** — Accept a list of regions and deploy one proxy per region (requires provider aliases or a wrapper module).
 - [ ] **VPC selection** — Optional `vpc_id` and `subnet_id` inputs; fall back to default VPC only when unset.

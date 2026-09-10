@@ -53,3 +53,10 @@ variable "proxy_password" {
   default     = null
   sensitive   = true
 }
+
+
+variable "use_asg" {
+  description = "Experimental: manage the proxy via an Auto Scaling Group instead of a standalone instance. When true, the module creates an ASG (backed by the shared launch template) plus an EventBridge rule and Lambda that set the ASG's desired capacity to 0 when a proxy instance begins shutting down (e.g. via ttl_hours). This keeps Terraform state free of drift while the instance count is managed out-of-band. Mutually exclusive with the standalone aws_instance/aws_spot_instance_request path."
+  type        = bool
+  default     = false
+}

@@ -4,6 +4,9 @@
 *.tfstate.*
 *.tfstate.backup
 
+# Lambda build artifacts
+lambda/*.zip
+
 # Secrets
 *.tfvars
 *.tfvars.json
