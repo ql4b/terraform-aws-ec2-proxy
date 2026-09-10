@@ -26,12 +26,10 @@ module "proxy" {
   proxy_password = var.proxy_password
 }
 
-output "proxy_url" {
-  description = "Proxy URL with embedded credentials — use as HTTP_PROXY"
-  value       = module.proxy.proxy_url
-  sensitive   = true
+output "asg_name" {
+  value = module.proxy.asg_name
 }
 
-output "public_ip" {
-  value = module.proxy.public_ip
-}
+# Auth credentials are baked into the launch template user_data. Resolve the
+# running instance's IP live by tag, then use:
+#   http://<username>:<password>@<ip>:8888

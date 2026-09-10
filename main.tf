@@ -117,67 +117,62 @@ ${local.squid_conf}SQUIDEOF
 systemctl enable --now squid${local.ttl_shutdown}
 EOF
 
-  instance_tags = merge(module.this.tags, { Name = module.this.id })
+  # Dedicated ownership tag: lets the scale-to-zero Lambda identify instances
+  # created by THIS module deployment (see aws_lambda_function.scale_to_zero).
+  managed_by_key = "proxy:managed-by"
+
+  instance_tags = merge(module.this.tags, {
+    Name                   = module.this.id
+    (local.managed_by_key) = module.this.id
+  })
 }
 
-resource "aws_spot_instance_request" "proxy" {
-  #checkov:skip=CKV_AWS_126:Detailed monitoring adds cost; unnecessary for a disposable proxy
-  #checkov:skip=CKV_AWS_135:All t4g (Nitro) instances are EBS-optimized by default
-  count = var.spot ? 1 : 0
+resource "aws_launch_template" "proxy" {
+  #checkov:skip=CKV_AWS_341:SSM-managed disposable proxy; hop limit default is acceptable
+  name          = module.this.id
+  image_id      = data.aws_ssm_parameter.ami.value
+  instance_type = var.instance_type
+  user_data     = base64encode(local.user_data)
 
-  ami                                  = data.aws_ssm_parameter.ami.value
-  instance_type                        = var.instance_type
-  subnet_id                            = local.subnet_id
-  associate_public_ip_address          = true #checkov:skip=CKV_AWS_88:Public IP required — this is an internet-facing forward proxy
-  vpc_security_group_ids               = [aws_security_group.proxy.id]
-  iam_instance_profile                 = aws_iam_instance_profile.proxy.name
-  user_data                            = local.user_data
+  iam_instance_profile {
+    # Reference by ARN (not name) to reduce the IAM-propagation race when an
+    # ASG launches from this template immediately after the profile is created.
+    arn = aws_iam_instance_profile.proxy.arn
+  }
+
   instance_initiated_shutdown_behavior = var.ttl_hours != null ? "terminate" : "stop"
+
+  network_interfaces {
+    associate_public_ip_address = true #checkov:skip=CKV_AWS_88:Public IP required — this is an internet-facing forward proxy
+    security_groups             = [aws_security_group.proxy.id]
+    # Subnet must live in the network interface (not at instance level) — EC2
+    # rejects a network_interfaces block plus an instance-level subnet_id. The
+    # ASG ignores this and uses vpc_zone_identifier instead (per AWS docs).
+    subnet_id = local.subnet_id
+  }
 
   metadata_options {
     http_tokens   = "required"
     http_endpoint = "enabled"
   }
 
-  root_block_device {
-    encrypted = true
+  block_device_mappings {
+    device_name = "/dev/xvda"
+
+    ebs {
+      encrypted = true
+    }
   }
 
-  wait_for_fulfillment = true
-  spot_type            = "one-time"
-
-  tags = local.instance_tags
-}
-
-resource "aws_ec2_tag" "proxy" {
-  for_each    = var.spot ? local.instance_tags : {}
-  resource_id = aws_spot_instance_request.proxy[0].spot_instance_id
-  key         = each.key
-  value       = each.value
-}
-
-resource "aws_instance" "proxy" {
-  #checkov:skip=CKV_AWS_126:Detailed monitoring adds cost; unnecessary for a disposable proxy
-  #checkov:skip=CKV_AWS_135:All t4g (Nitro) instances are EBS-optimized by default
-  count = var.spot ? 0 : 1
-
-  ami                                  = data.aws_ssm_parameter.ami.value
-  instance_type                        = var.instance_type
-  subnet_id                            = local.subnet_id
-  associate_public_ip_address          = true #checkov:skip=CKV_AWS_88:Public IP required — this is an internet-facing forward proxy
-  vpc_security_group_ids               = [aws_security_group.proxy.id]
-  iam_instance_profile                 = aws_iam_instance_profile.proxy.name
-  user_data                            = local.user_data
-  instance_initiated_shutdown_behavior = var.ttl_hours != null ? "terminate" : "stop"
-
-  metadata_options {
-    http_tokens   = "required"
-    http_endpoint = "enabled"
+  tag_specifications {
+    resource_type = "instance"
+    tags          = local.instance_tags
   }
 
-  root_block_device {
-    encrypted = true
+  tag_specifications {
+    resource_type = "volume"
+    tags          = local.instance_tags
   }
 
-  tags = local.instance_tags
+  tags = module.this.tags
 }
