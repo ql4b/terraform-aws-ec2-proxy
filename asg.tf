@@ -29,6 +29,13 @@ resource "aws_autoscaling_group" "proxy" {
   health_check_type         = "EC2"
   health_check_grace_period = 120
 
+  # Do not block the apply on instance health. The ASG self-heals transient
+  # first-launch failures (e.g. IAM instance-profile propagation lag) by
+  # retrying, and — per the module's drift-avoidance design — Terraform manages
+  # the ASG contract, not any specific instance. Waiting for capacity would turn
+  # a transient scaling-activity failure into a fatal apply error and rollback.
+  wait_for_capacity_timeout = "0"
+
   launch_template {
     id      = aws_launch_template.proxy.id
     version = aws_launch_template.proxy.latest_version
@@ -42,6 +49,10 @@ resource "aws_autoscaling_group" "proxy" {
       propagate_at_launch = true
     }
   }
+
+  # Ensure the SSM policy is attached to the instance role before the ASG
+  # launches, so the first instance can register with SSM without a race.
+  depends_on = [aws_iam_role_policy_attachment.ssm]
 
   # desired_capacity is managed out-of-band: the scale-to-zero Lambda drives it
   # to 0 on TTL shutdown, and the wrapper drives it back to 1 on demand.

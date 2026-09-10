@@ -135,7 +135,9 @@ resource "aws_launch_template" "proxy" {
   user_data     = base64encode(local.user_data)
 
   iam_instance_profile {
-    name = aws_iam_instance_profile.proxy.name
+    # Reference by ARN (not name) to reduce the IAM-propagation race when an
+    # ASG launches from this template immediately after the profile is created.
+    arn = aws_iam_instance_profile.proxy.arn
   }
 
   instance_initiated_shutdown_behavior = var.ttl_hours != null ? "terminate" : "stop"
