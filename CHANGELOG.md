@@ -1,3 +1,7 @@
+## 3.1.0 (2026-09-10)
+
+* feat: tag instances with proxy:ttl-hours when a TTL is set (#10) ([13c1123](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/13c1123)), closes [#10](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/10)
+
 ## 3.0.0 (2026-09-10)
 
 * docs: auto-update terraform-docs ([d804ba5](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/d804ba5))
