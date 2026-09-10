@@ -111,8 +111,8 @@ run "imdsv2_enforced_on_spot" {
   }
 
   assert {
-    condition     = aws_spot_instance_request.proxy[0].metadata_options[0].http_tokens == "required"
-    error_message = "Spot instance must enforce IMDSv2 (http_tokens=required)"
+    condition     = aws_launch_template.proxy.metadata_options[0].http_tokens == "required"
+    error_message = "Launch template must enforce IMDSv2 (http_tokens=required)"
   }
 }
 
@@ -126,8 +126,8 @@ run "imdsv2_enforced_on_demand" {
   }
 
   assert {
-    condition     = aws_instance.proxy[0].metadata_options[0].http_tokens == "required"
-    error_message = "On-demand instance must enforce IMDSv2 (http_tokens=required)"
+    condition     = aws_launch_template.proxy.metadata_options[0].http_tokens == "required"
+    error_message = "Launch template must enforce IMDSv2 (http_tokens=required)"
   }
 }
 
@@ -140,8 +140,8 @@ run "root_volume_encrypted_spot" {
   }
 
   assert {
-    condition     = aws_spot_instance_request.proxy[0].root_block_device[0].encrypted == true
-    error_message = "Spot instance root volume must be encrypted"
+    condition     = tobool(aws_launch_template.proxy.block_device_mappings[0].ebs[0].encrypted) == true
+    error_message = "Launch template root volume must be encrypted"
   }
 }
 
@@ -155,8 +155,8 @@ run "root_volume_encrypted_on_demand" {
   }
 
   assert {
-    condition     = aws_instance.proxy[0].root_block_device[0].encrypted == true
-    error_message = "On-demand instance root volume must be encrypted"
+    condition     = tobool(aws_launch_template.proxy.block_device_mappings[0].ebs[0].encrypted) == true
+    error_message = "Launch template root volume must be encrypted"
   }
 }
 
@@ -172,7 +172,7 @@ run "ttl_sets_terminate_behavior_spot" {
   }
 
   assert {
-    condition     = aws_spot_instance_request.proxy[0].instance_initiated_shutdown_behavior == "terminate"
+    condition     = aws_launch_template.proxy.instance_initiated_shutdown_behavior == "terminate"
     error_message = "With ttl_hours set, shutdown behavior should be 'terminate'"
   }
 
@@ -192,7 +192,7 @@ run "no_ttl_sets_stop_behavior_on_demand" {
   }
 
   assert {
-    condition     = aws_instance.proxy[0].instance_initiated_shutdown_behavior == "stop"
+    condition     = aws_launch_template.proxy.instance_initiated_shutdown_behavior == "stop"
     error_message = "Without ttl_hours, shutdown behavior should be 'stop'"
   }
 }
