@@ -422,3 +422,172 @@ run "custom_vpc_without_subnet_still_looks_up_subnets" {
     error_message = "Should still look up subnets when only vpc_id is provided (no subnet_id)"
   }
 }
+
+
+# --- ASG mode (experimental use_asg) ---
+
+run "asg_disabled_by_default" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+  }
+
+  assert {
+    condition     = length(aws_autoscaling_group.proxy) == 0
+    error_message = "ASG should not be created when use_asg is false (default)"
+  }
+
+  assert {
+    condition     = length(aws_lambda_function.scale_to_zero) == 0
+    error_message = "Scale-to-zero Lambda should not be created when use_asg is false"
+  }
+
+  assert {
+    condition     = length(aws_cloudwatch_event_rule.instance_shutting_down) == 0
+    error_message = "EventBridge rule should not be created when use_asg is false"
+  }
+
+  assert {
+    condition     = output.asg_name == null
+    error_message = "asg_name output should be null when use_asg is false"
+  }
+}
+
+run "asg_enabled_creates_asg_and_disables_standalone" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+    use_asg   = true
+  }
+
+  assert {
+    condition     = length(aws_autoscaling_group.proxy) == 1
+    error_message = "ASG should be created when use_asg is true"
+  }
+
+  assert {
+    condition     = length(aws_spot_instance_request.proxy) == 0
+    error_message = "Standalone spot request must not be created in ASG mode"
+  }
+
+  assert {
+    condition     = length(aws_instance.proxy) == 0
+    error_message = "Standalone on-demand instance must not be created in ASG mode"
+  }
+}
+
+run "asg_single_node_capacity" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+    use_asg   = true
+  }
+
+  assert {
+    condition     = aws_autoscaling_group.proxy[0].min_size == 0
+    error_message = "ASG min_size should be 0 (allows scale-to-zero)"
+  }
+
+  assert {
+    condition     = aws_autoscaling_group.proxy[0].max_size == 1
+    error_message = "ASG max_size should be 1 (single-node proxy)"
+  }
+
+  assert {
+    condition     = aws_autoscaling_group.proxy[0].desired_capacity == 1
+    error_message = "ASG desired_capacity should start at 1"
+  }
+}
+
+run "asg_uses_launch_template" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+    use_asg   = true
+  }
+
+  assert {
+    condition     = length(aws_autoscaling_group.proxy[0].launch_template) == 1
+    error_message = "ASG should be wired to a launch template"
+  }
+}
+
+run "asg_honors_subnet_id" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+    use_asg   = true
+    vpc_id    = "vpc-custom123"
+    subnet_id = "subnet-custom456"
+  }
+
+  assert {
+    condition     = contains(aws_autoscaling_group.proxy[0].vpc_zone_identifier, "subnet-custom456")
+    error_message = "ASG should launch into the provided subnet_id"
+  }
+}
+
+run "scale_to_zero_rule_matches_shutting_down" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+    use_asg   = true
+  }
+
+  assert {
+    condition     = strcontains(aws_cloudwatch_event_rule.instance_shutting_down[0].event_pattern, "shutting-down")
+    error_message = "EventBridge rule must match the EC2 'shutting-down' state event"
+  }
+
+  assert {
+    condition     = strcontains(aws_cloudwatch_event_rule.instance_shutting_down[0].event_pattern, "aws.ec2")
+    error_message = "EventBridge rule must match the aws.ec2 source"
+  }
+}
+
+run "scale_to_zero_lambda_configured" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+    use_asg   = true
+  }
+
+  assert {
+    condition     = aws_lambda_function.scale_to_zero[0].handler == "scale_to_zero.handler"
+    error_message = "Lambda handler should be scale_to_zero.handler"
+  }
+
+  assert {
+    condition     = aws_lambda_function.scale_to_zero[0].environment[0].variables["MANAGED_BY"] == "test-proxy"
+    error_message = "Lambda MANAGED_BY env var should equal the module id (the ownership tag value)"
+  }
+}
+
+run "scale_to_zero_lambda_permission_targets_eventbridge" {
+  command = plan
+
+  variables {
+    namespace = "test"
+    name      = "proxy"
+    use_asg   = true
+  }
+
+  assert {
+    condition     = aws_lambda_permission.allow_eventbridge[0].principal == "events.amazonaws.com"
+    error_message = "Lambda permission should allow invocation from EventBridge"
+  }
+}
