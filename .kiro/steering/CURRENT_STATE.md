@@ -2,11 +2,11 @@
 
 *Last updated: 2026-09-10*
 
-## Status: v3.0.0 — ASG redesign (on branch `feat/autoscaling-group`, pre-merge)
+## Status: v3.1.0 — ASG redesign, released
 
-Breaking redesign: the proxy is now managed by a single-instance **Auto Scaling Group** instead of a standalone instance. This resolves the `ttl_hours` state-drift problem that was inherent to the v2 design (a self-terminating instance is drift). Spot support and the `use_asg` flag are removed; on-demand only.
+Breaking redesign (v3.0.0): the proxy is now managed by a single-instance **Auto Scaling Group** instead of a standalone instance. This resolves the `ttl_hours` state-drift problem that was inherent to the v2 design (a self-terminating instance is drift). Spot support and the `use_asg` flag are removed; on-demand only. v3.1.0 added the `proxy:ttl-hours` instance tag so tooling can report the TTL live by tag.
 
-**Preserved:** v2.x users are unaffected — they stay pinned to `~> 2.5`. v3 lands on a new major line via semantic-release (`feat!`).
+**Released & merged** via semantic-release. **Preserved:** v2.x users are unaffected — they stay pinned to `~> 2.5`. The `cloudless-proxy` wrapper consumes this module (`~> 3.0`) and ships the `bin/proxy` lifecycle CLI (scale-up/down, readiness probe, region guard, TTL display).
 
 ## What Works
 
