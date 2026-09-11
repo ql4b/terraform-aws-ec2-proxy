@@ -1,3 +1,8 @@
+## <small>3.1.1 (2026-09-11)</small>
+
+* docs: example READMEs + wrapper link; release docs as patch (#12) ([be7025f](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/be7025f)), closes [#12](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/12)
+* docs: update CURRENT_STATE status to v3.1.0 (released) (#11) ([9873cfa](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/9873cfa)), closes [#11](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/11)
+
 ## 3.1.0 (2026-09-10)
 
 * feat: tag instances with proxy:ttl-hours when a TTL is set (#10) ([13c1123](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/13c1123)), closes [#10](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/10)
