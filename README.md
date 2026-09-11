@@ -82,6 +82,24 @@ aws autoscaling set-desired-capacity --auto-scaling-group-name "$ASG" --desired-
 aws autoscaling set-desired-capacity --auto-scaling-group-name "$ASG" --desired-capacity 0
 ```
 
+## Just Want a Proxy? (No Terraform)
+
+This module is built for composition — embedding in a larger Terraform stack.
+If you'd rather not write any Terraform, the companion
+[**cloudless-proxy**](https://github.com/ql4b/cloudless-proxy) wrapper clones
+the module behind a `.env` file and a `proxy` CLI that handles the whole
+lifecycle:
+
+```bash
+git clone https://github.com/ql4b/cloudless-proxy.git
+cd cloudless-proxy
+cp .env.example .env    # set your AWS profile + region
+source activate
+proxy up                # deploy + wait until the proxy is serving
+proxy scale-down        # park it at $0; `proxy scale-up` for a fresh IP
+proxy down              # tear it all down
+```
+
 ## Architecture
 
 ```
