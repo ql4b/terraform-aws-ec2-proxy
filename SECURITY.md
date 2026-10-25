@@ -6,10 +6,10 @@ This module follows semantic versioning. Security fixes are applied to the
 latest major version line. Older major versions are not maintained unless a
 maintenance branch (`N.x`) exists.
 
-| Version | Supported          |
-| ------- | ------------------ |
-| 3.x     | :white_check_mark: |
-| < 3.0   | :x:                |
+| Version | Supported |
+| ------- | --------- |
+| 3.x     | Yes       |
+| < 3.0   | No        |
 
 ## Reporting a Vulnerability
 
