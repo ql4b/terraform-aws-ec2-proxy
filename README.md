@@ -259,7 +259,7 @@ Approximate cost for an on-demand `t4g.nano` in `us-east-1`: **~$0.0042/hour** (
 | Name | Version |
 |------|---------|
 | <a name="provider_archive"></a> [archive](#provider\_archive) | 2.8.1 |
-| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.58.0 |
+| <a name="provider_aws"></a> [aws](#provider\_aws) | 6.70.0 |
 | <a name="provider_http"></a> [http](#provider\_http) | 3.6.3 |
 
 ## Modules
