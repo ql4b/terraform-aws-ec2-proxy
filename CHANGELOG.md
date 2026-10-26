@@ -1,3 +1,14 @@
+## <small>3.1.2 (2026-10-26)</small>
+
+* docs: auto-update terraform-docs ([ff41413](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/ff41413))
+* ci: bump actions/checkout from 4.4.0 to 7.0.1 (#16) ([5f8423f](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/5f8423f)), closes [#16](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/16)
+* ci: bump actions/setup-node from 4.4.0 to 7.1.0 (#15) ([bdd163d](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/bdd163d)), closes [#15](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/15)
+* ci: bump hashicorp/setup-terraform from 3.1.2 to 4.0.1 (#17) ([4a3f365](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/4a3f365)), closes [#17](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/17)
+* ci: bump terraform-linters/setup-tflint from 4.1.1 to 6.3.2 (#18) ([1f8ca95](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/1f8ca95)), closes [#18](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/18)
+* ci: harden CI per OpenSSF Scorecard (#13) ([fc8ccdd](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/fc8ccdd)), closes [#13](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/13)
+* build: bump hashicorp/archive from 2.8.0 to 2.8.1 (#20) ([81404cc](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/81404cc)), closes [#20](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/20)
+* build: bump hashicorp/http from 3.6.0 to 3.6.3 (#14) ([cd0917b](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/cd0917b)), closes [#14](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/14)
+
 ## <small>3.1.1 (2026-09-11)</small>
 
 * docs: example READMEs + wrapper link; release docs as patch (#12) ([be7025f](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/be7025f)), closes [#12](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/12)
