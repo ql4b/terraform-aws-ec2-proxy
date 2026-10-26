@@ -17,6 +17,14 @@ on:
 permissions:
   contents: read
 
+# Serialize runs that push to main. The docs and release jobs both commit and
+# push back to the branch, so two runs racing (e.g. several PRs merged in quick
+# succession) collide on a non-fast-forward push. Queue per-ref instead of
+# cancelling, so no run's doc/release push is dropped.
+concurrency:
+  group: release-${{ github.ref }}
+  cancel-in-progress: false
+
 jobs:
   validate:
     name: Validate
