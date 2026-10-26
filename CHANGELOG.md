@@ -1,3 +1,8 @@
+## <small>3.1.3 (2026-10-26)</small>
+
+* docs: auto-update terraform-docs ([72a54b3](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/72a54b3))
+* build: bump hashicorp/aws from 6.58.0 to 6.70.0 (#19) ([20118e9](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/20118e9)), closes [#19](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/19)
+
 ## <small>3.1.2 (2026-10-26)</small>
 
 * docs: auto-update terraform-docs ([ff41413](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/ff41413))
