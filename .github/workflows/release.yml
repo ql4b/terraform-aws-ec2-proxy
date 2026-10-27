@@ -18,7 +18,20 @@ on:
 # go under `with:`; this module uses the reusable workflow's defaults as-is
 # (terraform ~> 1.7, checkov skips CKV_TF_1,CKV_AWS_382, unit filter
 # tests/unit.tftest.hcl), so none are needed.
+
+# Least privilege at the workflow level (OpenSSF Scorecard Token-Permissions:
+# an absent top-level block makes the token inherit the repo default, which
+# Scorecard flags as excessive). The reusable workflow's own jobs re-declare
+# read-only for validate and scope write to docs/release; the caller must grant
+# the union those jobs need, since `secrets: inherit` forwards an elevated token.
+permissions:
+  contents: read
+
 jobs:
   ci:
     uses: ql4b/.github/.github/workflows/terraform-module-ci.yml@87b62d35b10da2a3da19e5da294e1029a427ca5c # main
+    permissions:
+      contents: write # docs job commits terraform-docs; release job tags + commits changelog
+      issues: write # semantic-release comments on resolved issues
+      pull-requests: write # semantic-release comments on released PRs
     secrets: inherit
