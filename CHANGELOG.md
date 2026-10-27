@@ -1,3 +1,7 @@
+## <small>3.1.5 (2026-10-27)</small>
+
+* fix: declare least-privilege token permissions in caller workflow (#24) ([253f77e](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/253f77e)), closes [#24](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/24)
+
 ## <small>3.1.4 (2026-10-27)</small>
 
 * fix: pin reusable workflow to commit SHA (#23) ([9266d31](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/9266d31)), closes [#23](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/23)
