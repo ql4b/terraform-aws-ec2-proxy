@@ -20,5 +20,5 @@ on:
 # tests/unit.tftest.hcl), so none are needed.
 jobs:
   ci:
-    uses: ql4b/.github/.github/workflows/terraform-module-ci.yml@main
+    uses: ql4b/.github/.github/workflows/terraform-module-ci.yml@87b62d35b10da2a3da19e5da294e1029a427ca5c # main
     secrets: inherit
