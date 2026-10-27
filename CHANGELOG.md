@@ -1,3 +1,9 @@
+## <small>3.1.4 (2026-10-27)</small>
+
+* fix: pin reusable workflow to commit SHA (#23) ([9266d31](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/9266d31)), closes [#23](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/23)
+* ci: serialize Release runs to prevent doc-push races (#21) ([ce76363](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/ce76363)), closes [#21](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/21) [#20](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/20)
+* ci: use reusable terraform-module-ci workflow (#22) ([a83e962](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/a83e962)), closes [#22](https://github.com/ql4b/terraform-aws-ec2-proxy/issues/22)
+
 ## <small>3.1.3 (2026-10-26)</small>
 
 * docs: auto-update terraform-docs ([72a54b3](https://github.com/ql4b/terraform-aws-ec2-proxy/commit/72a54b3))
